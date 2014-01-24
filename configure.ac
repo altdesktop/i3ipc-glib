@@ -1,0 +1,31 @@
+AC_PREREQ(2.50)
+
+AC_INIT([i3-ipc], [0.0.1], [tony@dubstepdish.com])
+
+m4_pattern_allow([AM_PROG_AR])
+
+AC_CONFIG_AUX_DIR([build])
+AC_CONFIG_SRCDIR([i3ipc])
+AC_CONFIG_HEADER([config.h])
+
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_PROG_AR
+LT_INIT
+
+GOBJECT_INTROSPECTION_CHECK([1.30.0])
+
+PKG_CHECK_MODULES([xcb], [xcb])
+PKG_CHECK_MODULES([json], [json-glib-1.0])
+PKG_CHECK_MODULES([gobject], [gobject-2.0])
+
+AC_CONFIG_FILES([Makefile i3ipc/Makefile])
+
+AC_OUTPUT
