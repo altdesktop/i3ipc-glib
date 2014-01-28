@@ -69,6 +69,9 @@ outputs = ipc.get_outputs()
 print('Got outputs:')
 print(outputs)
 
+# Send a command to be executed synchronously
+ipc.command('focus left')
+
 # Define a callback to be called when you switch workspaces.
 def on_workspace(conn, data):
     #The first parameter is the connection to the ipc and the second is the
