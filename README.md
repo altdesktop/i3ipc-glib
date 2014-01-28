@@ -30,18 +30,21 @@ Installation requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system
 
 The following packages are required for building i3-ipc:
 
-* `xcb` and `xcb-proto` - the requirements for i3 itself should be ok.
-* `json-glib-1.0`
-* `gobject-2.0`
+* libxcb and xcb-proto (the requirements for i3 itself should be ok).
+* glib >= 2.38
+* json-glib >= 0.16
+* gobject-introspection >= 1.38
 
-You can check if you have these dependencies with `pkg-config --exists --print-errors xcb xcb-proto json-glib-1.0 gobject-2.0`.
+You can check if you have these packages with:
+
+    pkg-config --exists --print-errors xcb xcb-proto json-glib-1.0 gobject-2.0 gobject-introspection-1.0
 
 To use the Python bindings, set the following environment variables:
 
     export GI_TYPELIB_PATH=/path/to/i3-ipc/i3ipc
     export LD_LIBRARY_PATH=/path/to/i3-ipc/i3ipc/.libs:$LD_LIBRARY_PATH
 
-This should be sufficient for creating a development environment for working on the project. I'm not completely confident in the build system yet, so build problems may be considered bugs.
+This should be sufficient for creating a development environment for working on the project. I'm not completely confident in the build system yet, so build problems may be considered bugs. The library has been tested to build correctly on ArchLinux when the required packages are installed.
 
 ## Example
 
