@@ -22,7 +22,7 @@ The project as it is now should be considered a proof-of-concept only. Many aspe
 
 Currently only the Python bindings have been confirmed to work correctly.
 
-The object-oriented interface has yet to be designed. All ipc functions simply give the raw string response of the ipc. The implementation of the interface will be guided by the community. If you have an opinion, you can send me an email or get in touch with me on the [i3 irc channel](irc://irc.twice-irc.de/i3) (nick: TonyC).
+The object-oriented interface has yet to be designed. The implementation of the interface will be guided by the community. If you have an opinion, you can send me an email or get in touch with me on the [i3 irc channel](irc://irc.twice-irc.de/i3) (nick: TonyC).
 
 ## Installation
 
@@ -89,6 +89,25 @@ ipc.main()
 ## Contributing
 
 Development happens on Github. You can help by reporting bugs, making feature requests, and contributing patches by sending me a pull request.
+
+### Task List
+
+Here is a list of all the tasks that need to be done before releasing version 0.0.1 to the public. You can pick something from this list and work on it by sending me an email or making an issue so we can coordinate.
+
+- [X] Commands
+- [X] Subscriptions
+- [X] Queries
+- [ ] WORKSPACES reply/event
+- [ ] OUTPUTS reply/event
+- [ ] TREE reply
+- [ ] MARKS reply
+- [ ] BAR_CONFIG reply/event
+- [X] VERSION reply
+- [ ] mode event
+- [ ] window event
+- [ ] error handling
+
+You can also help by fixing memory leaks, writing documentation, starring the repository, telling your friends, or giving to starving children in Uganda.
 
 ## License
 
