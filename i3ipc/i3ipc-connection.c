@@ -546,7 +546,7 @@ void i3ipc_connection_main (i3ipcConnection *self) {
  *
  */
 gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self) {
-  GError *err;
+  GError *err = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
@@ -573,7 +573,7 @@ gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self) {
  *
  */
 gchar *i3ipc_connection_get_outputs(i3ipcConnection *self) {
-  GError *err;
+  GError *err = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
@@ -598,7 +598,7 @@ gchar *i3ipc_connection_get_outputs(i3ipcConnection *self) {
  *
  */
 gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
-  GError *err;
+  GError *err = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
@@ -624,7 +624,7 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
  *
  */
 gchar *i3ipc_connection_get_marks(i3ipcConnection *self) {
-  GError *err;
+  GError *err = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
@@ -651,7 +651,7 @@ gchar *i3ipc_connection_get_marks(i3ipcConnection *self) {
  *
  */
 gchar *i3ipc_connection_get_bar_config(i3ipcConnection *self) {
-  GError *err;
+  GError *err = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
@@ -677,7 +677,7 @@ gchar *i3ipc_connection_get_bar_config(i3ipcConnection *self) {
  *
  */
 gchar *i3ipc_connection_get_version(i3ipcConnection *self) {
-  GError *err;
+  GError *err = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
