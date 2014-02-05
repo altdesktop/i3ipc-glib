@@ -38,6 +38,46 @@
 
 #include "i3ipc-connection.h"
 
+/**
+ * i3ipc_version_reply_copy:
+ * @version: a #i3ipcVersionReply struct
+ *
+ * Creates a dynamically allocated i3ipc version reply as a copy of @version.
+ *
+ * This function is not intended for use in applications, because you can just
+ * copy structs by value (`i3ipcVersionReply new_version = version;`).
+ * You must free this version with i3ipc_version_reply_free().
+ *
+ * Return value: a newly-allocated copy of @version
+ */
+i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version) {
+  i3ipcVersionReply *retval;
+
+  g_return_val_if_fail(version != NULL, NULL);
+
+  retval = g_slice_new(i3ipcVersionReply);
+  *retval = *version;
+
+  return retval;
+}
+
+/**
+ * i3ipc_version_reply_free:
+ * @version: (allow-none): a #i3ipcVersionReply
+ *
+ * Frees @version. If @version is %NULL, it simply returns.
+ */
+void i3ipc_version_reply_free(i3ipcVersionReply *version) {
+  if (!version)
+    return;
+
+  g_free(version->human_readable);
+  g_slice_free(i3ipcVersionReply, version);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcVersionReply, i3ipc_version_reply,
+    i3ipc_version_reply_copy, i3ipc_version_reply_free);
+
 enum {
   WORKSPACE,
   OUTPUT,
@@ -673,10 +713,11 @@ gchar *i3ipc_connection_get_bar_config(i3ipcConnection *self) {
  * Gets the version of i3. The reply will be a JSON-encoded dictionary with the
  * major, minor, patch and human-readable version.
  *
- * Returns: a string reply
+ * Returns: a version reply object
  *
+ * Return value (transfer none): the version reply
  */
-gchar *i3ipc_connection_get_version(i3ipcConnection *self) {
+i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self) {
   GError *err = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
@@ -689,5 +730,29 @@ gchar *i3ipc_connection_get_version(i3ipcConnection *self) {
 
   reply[reply_length] = '\0';
 
-  return reply;
+  i3ipcVersionReply *version_reply = g_new(i3ipcVersionReply, 1);
+
+  json_parser_load_from_data(self->priv->parser, reply, reply_length, err);
+  g_assert_no_error(err);
+
+  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  json_reader_read_member(reader, "major");
+  version_reply->major = json_reader_get_int_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "minor");
+  version_reply->minor = json_reader_get_int_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "patch");
+  version_reply->patch = json_reader_get_int_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "human_readable");
+  version_reply->human_readable = g_strdup(json_reader_get_string_value(reader));
+  json_reader_end_member(reader);
+
+  g_object_unref(reader);
+
+  return version_reply;
 }
