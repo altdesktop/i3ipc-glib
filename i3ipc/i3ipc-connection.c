@@ -78,8 +78,8 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
 
   /**
    * i3ipcConnection::workspace:
-   * @conn: the #i3ipcConnection on which the signal was emitted
-   * @reply: The workspace event reply
+   * @self: the #i3ipcConnection on which the signal was emitted
+   * @e: The workspace event object
    *
    * Sent when the user switches to a different workspace, when a new workspace
    * is initialized or when a workspace is removed (because the last client
@@ -93,15 +93,15 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__STRING,       /* c_marshaller */
+      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_STRING);                        /* n_params */
+      G_TYPE_VARIANT);                        /* n_params */
 
   /**
    * i3ipcConnection::output:
-   * @conn: the #i3ipcConnection on which the signal was emitted
-   * @reply: The output event reply
+   * @self: the #i3ipcConnection on which the signal was emitted
+   * @e: The output event object
    *
    * Sent when RandR issues a change notification (of either screens, outputs,
    * CRTCs or output properties).
@@ -114,15 +114,15 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__STRING,       /* c_marshaller */
+      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_STRING);                        /* n_params */
+      G_TYPE_VARIANT);                        /* n_params */
 
   /**
    * i3ipcConnection::mode:
-   * @conn: the #i3ipcConnection on which the signal was emitted
-   * @reply: The mode event reply
+   * @self: the #i3ipcConnection on which the signal was emitted
+   * @e: The mode event object
    *
    * Sent whenever i3 changes its binding mode.
    *
@@ -134,15 +134,15 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__STRING,       /* c_marshaller */
+      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_STRING);                        /* n_params */
+      G_TYPE_VARIANT);                        /* n_params */
 
   /**
    * i3ipcConnection::window:
-   * @conn: the #i3ipcConnection on which the signal was emitted
-   * @reply: The window event reply
+   * @self: the #i3ipcConnection on which the signal was emitted
+   * @e: The window event object
    *
    * Sent when a client’s window is successfully reparented (that is when i3
    * has finished fitting it into a container).
@@ -155,15 +155,15 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__STRING,       /* c_marshaller */
+      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_STRING);                        /* n_params */
+      G_TYPE_VARIANT);                        /* n_params */
 
   /**
    * i3ipcConnection::barconfig_update:
-   * @conn: the #i3ipcConnection on which the signal was emitted
-   * @reply: The barconfig_update event reply
+   * @self: the #i3ipcConnection on which the signal was emitted
+   * @e: The barconfig_update event object
    *
    * Sent when the hidden_state or mode field in the barconfig of any bar
    * instance was updated.
@@ -176,10 +176,10 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__STRING,       /* c_marshaller */
+      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_STRING);                        /* n_params */
+      G_TYPE_VARIANT);                        /* n_params */
 
 }
 
@@ -335,31 +335,35 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
+  GVariant *event_data;
   GError *err = NULL;
 
   ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
   g_assert_no_error(err);
 
+  event_data = json_gvariant_deserialize_data(reply, reply_length, NULL, &err);
+  g_assert_no_error(err);
+
   switch (1 << (reply_type & 0x7F))
   {
     case I3_IPC_EVENT_WORKSPACE:
-      g_signal_emit(conn, connection_signals[WORKSPACE], 0, reply);
+      g_signal_emit(conn, connection_signals[WORKSPACE], 0, event_data);
       break;
 
     case I3_IPC_EVENT_OUTPUT:
-      g_signal_emit(conn, connection_signals[OUTPUT], 0, reply);
+      g_signal_emit(conn, connection_signals[OUTPUT], 0, event_data);
       break;
 
     case I3_IPC_EVENT_MODE:
-      g_signal_emit(conn, connection_signals[MODE], 0, reply);
+      g_signal_emit(conn, connection_signals[MODE], 0, event_data);
       break;
 
     case I3_IPC_EVENT_WINDOW:
-      g_signal_emit(conn, connection_signals[WINDOW], 0, reply);
+      g_signal_emit(conn, connection_signals[WINDOW], 0, event_data);
       break;
 
     case I3_IPC_EVENT_BARCONFIG_UPDATE:
-      g_signal_emit(conn, connection_signals[BARCONFIG_UPDATE], 0, reply);
+      g_signal_emit(conn, connection_signals[BARCONFIG_UPDATE], 0, event_data);
       break;
 
     default:

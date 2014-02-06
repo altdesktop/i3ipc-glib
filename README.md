@@ -63,7 +63,11 @@ ipc = i3ipc.Connection()
 # version of the library.
 ipc.connect()
 
-# Query the ipc for outputs. The result is a string that can be parsed as json.
+# Query the ipc for outputs. For now, the result is a dict that represents the
+# parsed reply of a command like `i3-msg -t get_outputs`. Later it will be an
+# object with methods for common tasks. The goal is to remove the burden of
+# writing recursive tree algorithms, understanding i3 data structures, or
+# reading X11 specification documents to do anything useful.
 outputs = ipc.get_outputs()
 
 print('Got outputs:')
@@ -73,9 +77,9 @@ print(outputs)
 ipc.command('focus left')
 
 # Define a callback to be called when you switch workspaces.
-def on_workspace(conn, data):
-    #The first parameter is the connection to the ipc and the second is the
-    #data of the event as a string that you can parse as json.
+def on_workspace(self, e):
+    # The first parameter is the connection to the ipc and the second is a dict
+    # containing the data of the event sent from i3.
     print('Got workspace data:')
     print(data)
 
@@ -97,14 +101,15 @@ Here is a list of all the tasks that need to be done before releasing version 0.
 - [X] Commands
 - [X] Subscriptions
 - [X] Queries
-- [ ] WORKSPACES reply/event
-- [ ] OUTPUTS reply/event
+- [ ] Object oriented interface
+- [ ] WORKSPACES reply
+- [ ] OUTPUTS reply
 - [ ] TREE reply
 - [X] MARKS reply
-- [X] BAR_CONFIG reply/event
+- [X] BAR_CONFIG reply
 - [X] VERSION reply
-- [ ] mode event
-- [ ] window event
+- [X] mode event
+- [X] window event
 - [ ] error handling
 
 You can also help by fixing memory leaks, writing documentation, starring the repository, telling your friends, or giving to starving children in Uganda.
