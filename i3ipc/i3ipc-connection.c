@@ -508,6 +508,25 @@ static gboolean ipc_command_sync(i3ipcConnection *conn, uint32_t message_type, c
 }
 
 /*
+ * Synchronously sends the query to the ipc and returns the result as a GVariant.
+ */
+static GVariant *ipc_query_sync(i3ipcConnection *conn, uint32_t message_type, char *command, GError **err) {
+  uint32_t reply_length;
+  uint32_t reply_type;
+  gchar *reply;
+  ipc_send_message(conn->cmd_channel, strlen(command), message_type, command, err);
+  g_assert_no_error(*err);
+
+  ipc_recv_message(conn->cmd_channel, &reply_type, &reply_length, &reply, err);
+  g_assert_no_error(*err);
+
+  GVariant *retval = json_gvariant_deserialize_data(reply, reply_length, NULL, err);
+  g_assert_no_error(*err);
+
+  return retval;
+}
+
+/*
  * Subscribes to the event with the given name.
  */
 static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **err) {
