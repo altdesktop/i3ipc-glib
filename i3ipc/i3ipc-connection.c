@@ -702,28 +702,25 @@ gchar *i3ipc_connection_get_marks(i3ipcConnection *self) {
 /**
  * i3ipc_connection_get_bar_config:
  * @self: An #i3ipcConnection
+ * @bar_id: (allow-none): The id of the particular bar
  *
  * Gets the configuration (as JSON map) of the workspace bar with the given ID.
  * If no ID is provided, an array with all configured bar IDs is returned
  * instead.
  *
- * Returns: a string reply
+ * Return value:(transfer none) the bar config reply
  *
  */
-gchar *i3ipc_connection_get_bar_config(i3ipcConnection *self) {
+GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id) {
   GError *err = NULL;
-  uint32_t reply_length;
-  uint32_t reply_type;
-  gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3_IPC_MESSAGE_TYPE_GET_BAR_CONFIG, "", &err);
+
+  if (bar_id == NULL)
+    bar_id = "";
+
+  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &err);
   g_assert_no_error(err);
 
-  ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
-  g_assert_no_error(err);
-
-  reply[reply_length] = '\0';
-
-  return reply;
+  return retval;
 }
 
 /**

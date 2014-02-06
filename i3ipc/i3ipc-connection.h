@@ -107,7 +107,7 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self);
 
 gchar *i3ipc_connection_get_marks(i3ipcConnection *self);
 
-gchar *i3ipc_connection_get_bar_config(i3ipcConnection *self);
+GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id);
 
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self);
 

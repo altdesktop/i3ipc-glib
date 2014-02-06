@@ -101,7 +101,7 @@ Here is a list of all the tasks that need to be done before releasing version 0.
 - [ ] OUTPUTS reply/event
 - [ ] TREE reply
 - [ ] MARKS reply
-- [ ] BAR_CONFIG reply/event
+- [X] BAR_CONFIG reply/event
 - [X] VERSION reply
 - [ ] mode event
 - [ ] window event
