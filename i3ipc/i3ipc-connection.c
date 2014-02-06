@@ -640,23 +640,16 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
  * Gets a list of marks (identifiers for containers to easily jump to them
  * later). The reply will be a JSON-encoded list of window marks.
  *
- * Returns: a string reply
+ * Return value: (transfer none) a list of window marks
  *
  */
-gchar *i3ipc_connection_get_marks(i3ipcConnection *self) {
+GVariant *i3ipc_connection_get_marks(i3ipcConnection *self) {
   GError *err = NULL;
-  uint32_t reply_length;
-  uint32_t reply_type;
-  gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3_IPC_MESSAGE_TYPE_GET_MARKS, "", &err);
+
+  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_MARKS, "", &err);
   g_assert_no_error(err);
 
-  ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
-  g_assert_no_error(err);
-
-  reply[reply_length] = '\0';
-
-  return reply;
+  return retval;
 }
 
 /**

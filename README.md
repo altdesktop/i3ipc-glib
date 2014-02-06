@@ -100,7 +100,7 @@ Here is a list of all the tasks that need to be done before releasing version 0.
 - [ ] WORKSPACES reply/event
 - [ ] OUTPUTS reply/event
 - [ ] TREE reply
-- [ ] MARKS reply
+- [X] MARKS reply
 - [X] BAR_CONFIG reply/event
 - [X] VERSION reply
 - [ ] mode event
