@@ -81,7 +81,7 @@ def on_workspace(self, e):
     # The first parameter is the connection to the ipc and the second is a dict
     # containing the data of the event sent from i3.
     print('Got workspace data:')
-    print(data)
+    print(e)
 
 # Subscribe to the workspace event
 ipc.on('workspace', on_workspace)
