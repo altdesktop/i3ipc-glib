@@ -283,8 +283,9 @@ static char *get_socket_path() {
   }
 
   int len = xcb_get_property_value_length(prop_reply);
-  char *socket_path = malloc(len + 1);
+  char *socket_path = malloc(len);
   strncpy(socket_path, (char *)xcb_get_property_value(prop_reply), len);
+  socket_path[len] = '\0';
 
   free(atom_reply);
   free(prop_reply);
