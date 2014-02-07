@@ -678,6 +678,7 @@ GVariant *i3ipc_connection_get_marks(i3ipcConnection *self) {
  * i3ipc_connection_get_bar_config:
  * @self: An #i3ipcConnection
  * @bar_id: (allow-none): The id of the particular bar
+ * @error: return location for a GError, or NULL
  *
  * Gets the configuration (as JSON map) of the workspace bar with the given ID.
  * If no ID is provided, an array with all configured bar IDs is returned
@@ -686,14 +687,20 @@ GVariant *i3ipc_connection_get_marks(i3ipcConnection *self) {
  * Return value:(transfer none) the bar config reply
  *
  */
-GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id) {
-  GError *err = NULL;
+GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err) {
+  GError *tmp_error = NULL;
+
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
   if (bar_id == NULL)
     bar_id = "";
 
-  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &err);
-  g_assert_no_error(err);
+  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
 
   return retval;
 }
