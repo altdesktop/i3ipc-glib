@@ -708,17 +708,24 @@ GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, 
 /**
  * i3ipc_connection_get_version:
  * @self: An #i3ipcConnection
+ * @error: return location for a GError, or NULL
  *
  * Gets the version of i3. The reply will be a JSON-encoded dictionary with the
  * major, minor, patch and human-readable version.
  *
  * Return value: (transfer none) the version reply
  */
-GVariant *i3ipc_connection_get_version(i3ipcConnection *self) {
-  GError *err = NULL;
+GVariant *i3ipc_connection_get_version(i3ipcConnection *self, GError **err) {
+  GError *tmp_error = NULL;
 
-  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_VERSION, "", &err);
-  g_assert_no_error(err);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_VERSION, "", &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
 
   return retval;
 }
