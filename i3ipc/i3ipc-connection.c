@@ -658,6 +658,7 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
 /**
  * i3ipc_connection_get_marks:
  * @self: An #i3ipcConnection
+ * @error: return location for a GError, or NULL
  *
  * Gets a list of marks (identifiers for containers to easily jump to them
  * later). The reply will be a JSON-encoded list of window marks.
@@ -665,11 +666,17 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
  * Return value: (transfer none) a list of window marks
  *
  */
-GVariant *i3ipc_connection_get_marks(i3ipcConnection *self) {
-  GError *err = NULL;
+GVariant *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
+  GError *tmp_error = NULL;
 
-  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_MARKS, "", &err);
-  g_assert_no_error(err);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_MARKS, "", &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
 
   return retval;
 }
