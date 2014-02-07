@@ -473,19 +473,37 @@ static gboolean ipc_command_sync(i3ipcConnection *conn, uint32_t message_type, c
 
 /*
  * Synchronously sends the query to the ipc and returns the result as a GVariant.
+ * Returns NULL if an error occurred.
  */
 static GVariant *ipc_query_sync(i3ipcConnection *conn, uint32_t message_type, char *command, GError **err) {
+  GError *tmp_error = NULL;
+
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
-  ipc_send_message(conn->cmd_channel, strlen(command), message_type, command, err);
-  g_assert_no_error(*err);
 
-  ipc_recv_message(conn->cmd_channel, &reply_type, &reply_length, &reply, err);
-  g_assert_no_error(*err);
+  ipc_send_message(conn->cmd_channel, strlen(command), message_type, command, &tmp_error);
 
-  GVariant *retval = json_gvariant_deserialize_data(reply, reply_length, NULL, err);
-  g_assert_no_error(*err);
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  ipc_recv_message(conn->cmd_channel, &reply_type, &reply_length, &reply, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  GVariant *retval = json_gvariant_deserialize_data(reply, reply_length, NULL, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
 
   return retval;
 }
