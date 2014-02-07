@@ -116,8 +116,8 @@ You can also help by fixing memory leaks, writing documentation, starring the re
 
 ## License
 
+This work is available under the GNU General Public License (See COPYING).
+
 Copyright © 2014, Tony Crisci
 
 All rights reserved.
-
-This work is available under the GNU General Public License (See COPYING).
