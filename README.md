@@ -10,17 +10,11 @@ i3's *interprocess communication* (or [ipc](http://i3wm.org/docs/ipc.html)) is t
 
 i3-ipc is a library to communicate with i3 via the ipc. The project is written in C and exposes bindings to various high-level programming languages such as Python, Perl, Lua, Ruby, and JavaScript. This is possible through the use of Gnome's [GObject Introspection](https://wiki.gnome.org/action/show/Projects/GObjectIntrospection?action=show&redirect=GObjectIntrospection) library and utilities.
 
-This project has the following goals:
-
-* Provide a complete, object-oriented library interface to i3 for general scripting.
-* Replace older unmaintained ipc libraries such as [i3-py](https://github.com/ziberna/i3-py) as well as providing an ipc library for new languages such as Lua and JavaScript.
-* Provide a unified api in a single library for easier maintenance of the ipc.
+The goal of this project is to provide a basis for new projects in higher level languages for general scripting as well as an interface to i3 that fits well within a GLib-based stack.
 
 ## Where we are now
 
 The project as it is now should be considered a proof-of-concept only. Many aspects of the api will change as new features are implemented.
-
-Currently only the Python bindings have been confirmed to work correctly.
 
 The object-oriented interface has yet to be designed. The implementation of the interface will be guided by the community. If you have an opinion, you can send me an email or get in touch with me on the [i3 irc channel](irc://irc.twice-irc.de/i3) (nick: TonyC).
 
@@ -33,7 +27,7 @@ The following packages are required for building i3-ipc:
 * libxcb and xcb-proto (the requirements for i3 itself should be ok).
 * glib >= 2.38
 * json-glib >= 0.16
-* gobject-introspection >= 1.38
+* gobject-introspection >= 1.38 (for language bindings)
 
 You can check if you have these packages with:
 
@@ -60,21 +54,17 @@ from gi.repository.GLib import MainLoop
 # to events.
 ipc = i3ipc.Connection()
 
-# Establish a connection to the ipc. These steps may be eliminated in the final
-# version of the library.
+# Establish a connection to the ipc (this step will be eliminated soon).
 ipc.connect()
 
 # Query the ipc for outputs. For now, the result is a dict that represents the
-# parsed reply of a command like `i3-msg -t get_outputs`. Later it will be an
-# object with methods for common tasks. The goal is to remove the burden of
-# writing recursive tree algorithms, understanding i3 data structures, or
-# reading X11 specification documents to do anything useful.
+# parsed reply of a command like `i3-msg -t get_outputs`.
 outputs = ipc.get_outputs()
 
 print('Got outputs:')
 print(outputs)
 
-# Send a command to be executed synchronously
+# Send a command to be executed synchronously.
 ipc.command('focus left')
 
 # Define a callback to be called when you switch workspaces.
