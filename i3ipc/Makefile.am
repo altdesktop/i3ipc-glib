@@ -6,6 +6,8 @@ lib_LTLIBRARIES=libi3ipc-1.0.la
 libi3ipc_1_0_la_LIBADD=${xcb_LIBS} ${json_LIBS} ${gobject_LIBS}
 libi3ipc_1_0_la_SOURCES= \
   ipc-protocol.h \
+	i3ipc-con.c \
+	i3ipc-con.h \
 	i3ipc-connection.c \
 	i3ipc-connection.h
 
