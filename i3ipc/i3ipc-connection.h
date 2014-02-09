@@ -50,7 +50,6 @@ struct _i3ipcConnection
 
   GIOChannel *cmd_channel;
   GIOChannel *sub_channel;
-  GMainLoop *main_loop;
 
   i3ipcConnectionPrivate *priv;
 };
@@ -74,8 +73,6 @@ void i3ipc_connection_connect(i3ipcConnection *self);
 gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command);
 
 void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback);
-
-void i3ipc_connection_main(i3ipcConnection *self);
 
 gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self);
 

@@ -402,8 +402,6 @@ void i3ipc_connection_connect(i3ipcConnection *self) {
 
   g_io_add_watch(self->sub_channel, G_IO_IN, (GIOFunc)ipc_on_data, self);
 
-  self->main_loop = g_main_loop_new(NULL, TRUE);
-
   free(socket_path);
 }
 
@@ -562,19 +560,6 @@ void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback
       self->priv->subscriptions |= (1 << signal);
     }
   }
-}
-
-/**
- * i3ipc_connection_main:
- * @self: A #i3ipcConnection
- *
- * Starts the main event loop and waits for the subscribed events.
- *
- * Returns: nothing
- *
- */
-void i3ipc_connection_main (i3ipcConnection *self) {
-  g_main_loop_run(self->main_loop);
 }
 
 /**

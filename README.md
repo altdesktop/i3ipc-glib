@@ -54,6 +54,7 @@ Here is an example use of the library with the Python bindings.
 #!/usr/bin/env python3
 
 from gi.repository import i3ipc
+from gi.repository.GLib import MainLoop
 
 # Create the Connection object that can be used to send commands and subscribe
 # to events.
@@ -87,7 +88,9 @@ def on_workspace(self, e):
 ipc.on('workspace', on_workspace)
 
 # Start the main loop and wait for events to come in.
-ipc.main()
+main = MainLoop()
+main.run()
+main.unref()
 ```
 
 ## Contributing
