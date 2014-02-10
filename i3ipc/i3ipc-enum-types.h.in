@@ -1,0 +1,23 @@
+/*** BEGIN file-header ***/
+#ifndef __I3IPC_ENUM_TYPES_H__
+#define __I3IPC_ENUM_TYPES_H__
+
+#include <glib-object.h>
+
+/*** END file-header ***/
+
+/*** BEGIN file-production ***/
+/* enumerations from "@filename@" */
+/*** END file-production ***/
+
+/*** BEGIN file-tail ***/
+
+#endif /* !__I3IPC_ENUM_TYPES_H__ */
+/*** END file-tail ***/
+
+/*** BEGIN value-header ***/
+GType @enum_name@_get_type (void) G_GNUC_CONST;
+#define I3IPC_TYPE_@ENUMSHORT@ (@enum_name@_get_type())
+
+/*** END value-header ***/
+
