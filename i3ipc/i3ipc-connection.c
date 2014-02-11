@@ -34,9 +34,15 @@
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
 #include <gobject/gmarshal.h>
-#include "ipc-protocol.h"
 
 #include "i3ipc-connection.h"
+
+typedef struct i3_ipc_header {
+    /* 6 = strlen(I3_IPC_MAGIC) */
+    char magic[6];
+    uint32_t size;
+    uint32_t type;
+} __attribute__ ((packed)) i3_ipc_header_t;
 
 enum {
   WORKSPACE,
@@ -285,7 +291,7 @@ static int get_file_descriptor(const char *socket_path) {
  */
 static int ipc_recv_message(GIOChannel *channel, uint32_t *message_type, uint32_t *reply_length, gchar **reply, GError **err) {
   /* Read the message header first */
-  const uint32_t to_read = strlen(I3_IPC_MAGIC) + sizeof(uint32_t) + sizeof(uint32_t);
+  const uint32_t to_read = strlen(I3IPC_MAGIC) + sizeof(uint32_t) + sizeof(uint32_t);
   char msg[to_read];
   char *walk = msg;
   GIOStatus status;
@@ -301,12 +307,12 @@ static int ipc_recv_message(GIOChannel *channel, uint32_t *message_type, uint32_
     g_assert_no_error(*err);
   }
 
-  if (memcmp(walk, I3_IPC_MAGIC, strlen(I3_IPC_MAGIC)) != 0) {
+  if (memcmp(walk, I3IPC_MAGIC, strlen(I3IPC_MAGIC)) != 0) {
     g_error("IPC: invalid magic in reply\n");
     return -3;
   }
 
-  walk += strlen(I3_IPC_MAGIC);
+  walk += strlen(I3IPC_MAGIC);
   memcpy(reply_length, walk, sizeof(uint32_t));
   walk += sizeof(uint32_t);
   if (message_type != NULL)
@@ -346,23 +352,23 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
   switch (1 << (reply_type & 0x7F))
   {
-    case I3_IPC_EVENT_WORKSPACE:
+    case I3IPC_EVENT_WORKSPACE:
       g_signal_emit(conn, connection_signals[WORKSPACE], 0, event_data);
       break;
 
-    case I3_IPC_EVENT_OUTPUT:
+    case I3IPC_EVENT_OUTPUT:
       g_signal_emit(conn, connection_signals[OUTPUT], 0, event_data);
       break;
 
-    case I3_IPC_EVENT_MODE:
+    case I3IPC_EVENT_MODE:
       g_signal_emit(conn, connection_signals[MODE], 0, event_data);
       break;
 
-    case I3_IPC_EVENT_WINDOW:
+    case I3IPC_EVENT_WINDOW:
       g_signal_emit(conn, connection_signals[WINDOW], 0, event_data);
       break;
 
-    case I3_IPC_EVENT_BARCONFIG_UPDATE:
+    case I3IPC_EVENT_BARCONFIG_UPDATE:
       g_signal_emit(conn, connection_signals[BARCONFIG_UPDATE], 0, event_data);
       break;
 
@@ -410,7 +416,7 @@ void i3ipc_connection_connect(i3ipcConnection *self) {
  */
 static int ipc_send_message(GIOChannel *channel, const uint32_t message_size, const uint32_t message_type, const gchar *command, GError **err) {
   const i3_ipc_header_t header = {
-    /* We don’t use I3_IPC_MAGIC because it’s a 0-terminated C string. */
+    /* We don’t use I3IPC_MAGIC because it’s a 0-terminated C string. */
     .magic = { 'i', '3', '-', 'i', 'p', 'c' },
     .size = message_size,
     .type = message_type
@@ -443,7 +449,7 @@ static int ipc_send_message(GIOChannel *channel, const uint32_t message_size, co
  * Synchronously sends the command to the ipc and returns the result.
  */
 static gboolean ipc_command_sync(i3ipcConnection *conn, uint32_t message_type, char *command, GError **err) {
-  GIOChannel *channel = (message_type == I3_IPC_MESSAGE_TYPE_SUBSCRIBE ? conn->sub_channel : conn->cmd_channel);
+  GIOChannel *channel = (message_type == I3IPC_MESSAGE_TYPE_SUBSCRIBE ? conn->sub_channel : conn->cmd_channel);
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
@@ -514,7 +520,7 @@ static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **
 
   sprintf(command, "[\"%s\"]", event_name);
 
-  gboolean result = ipc_command_sync(conn, I3_IPC_MESSAGE_TYPE_SUBSCRIBE, command, err);
+  gboolean result = ipc_command_sync(conn, I3IPC_MESSAGE_TYPE_SUBSCRIBE, command, err);
   g_assert_no_error(*err);
 
   return result;
@@ -532,7 +538,7 @@ static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **
   */
 gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command) {
   GError *err = NULL;
-  gboolean result = ipc_command_sync(self, I3_IPC_MESSAGE_TYPE_COMMAND, command, &err);
+  gboolean result = ipc_command_sync(self, I3IPC_MESSAGE_TYPE_COMMAND, command, &err);
   g_assert_no_error(err);
 
   return result;
@@ -577,7 +583,7 @@ gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self) {
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3_IPC_MESSAGE_TYPE_GET_WORKSPACES, "", &err);
+  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_WORKSPACES, "", &err);
   g_assert_no_error(err);
 
   ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
@@ -604,7 +610,7 @@ gchar *i3ipc_connection_get_outputs(i3ipcConnection *self) {
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3_IPC_MESSAGE_TYPE_GET_OUTPUTS, "", &err);
+  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_OUTPUTS, "", &err);
   g_assert_no_error(err);
 
   ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
@@ -629,7 +635,7 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3_IPC_MESSAGE_TYPE_GET_TREE, "", &err);
+  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_TREE, "", &err);
   g_assert_no_error(err);
 
   ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
@@ -656,7 +662,7 @@ GVariant *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_MARKS, "", &tmp_error);
+  GVariant *retval = ipc_query_sync(self, I3IPC_MESSAGE_TYPE_GET_MARKS, "", &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
@@ -687,7 +693,7 @@ GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, 
   if (bar_id == NULL)
     bar_id = "";
 
-  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
+  GVariant *retval = ipc_query_sync(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
@@ -712,7 +718,7 @@ GVariant *i3ipc_connection_get_version(i3ipcConnection *self, GError **err) {
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  GVariant *retval = ipc_query_sync(self, I3_IPC_MESSAGE_TYPE_GET_VERSION, "", &tmp_error);
+  GVariant *retval = ipc_query_sync(self, I3IPC_MESSAGE_TYPE_GET_VERSION, "", &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);

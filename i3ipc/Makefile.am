@@ -21,7 +21,6 @@ source_h = \
 	$(NULL)
 
 source_h_private = \
-	$(top_srcdir)/i3ipc//ipc-protocol.h \
 	$(NULL)
 
 source_c = \
@@ -62,6 +61,6 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
-CLEANFILES += $(gir_DATA) $(typelib_DATA)
+CLEANFILES += $(gir_DATA) $(typelib_DATA) $(BUILT_SOURCES)
 endif
 

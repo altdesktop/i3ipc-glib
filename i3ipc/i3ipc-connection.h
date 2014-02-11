@@ -23,6 +23,8 @@
 
 #include <glib-object.h>
 
+#define I3IPC_MAGIC "i3-ipc"
+
 /**
   * SECTION: i3ipc-connection
   * @short_description: A connection to the i3 IPC.
@@ -43,6 +45,78 @@ typedef struct _i3ipcVersionReply      i3ipcVersionReply;
 typedef struct _i3ipcConnection        i3ipcConnection;
 typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
 typedef struct _i3ipcConnectionPrivate i3ipcConnectionPrivate;
+
+/**
+ * i3ipcMessageType:
+ * @I3IPC_MESSAGE_TYPE_COMMAND:
+ * @I3IPC_MESSAGE_TYPE_GET_WORKSPACES:
+ * @I3IPC_MESSAGE_TYPE_GET_SUBSCRIBE:
+ * @I3IPC_MESSAGE_TYPE_GET_OUTPUTS:
+ * @I3IPC_MESSAGE_TYPE_GET_TREE:
+ * @I3IPC_MESSAGE_TYPE_GET_MARKS:
+ * @I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG:
+ * @I3IPC_MESSAGE_TYPE_GET_VERSION:
+ *
+ * Message type enumeration for #i3ipcConnection
+ *
+ * This enumeration can be extended at later date
+ */
+typedef enum { /*< underscore_name=i3ipc_message_type >*/
+  I3IPC_MESSAGE_TYPE_COMMAND,
+  I3IPC_MESSAGE_TYPE_GET_WORKSPACES,
+  I3IPC_MESSAGE_TYPE_SUBSCRIBE,
+  I3IPC_MESSAGE_TYPE_GET_OUTPUTS,
+  I3IPC_MESSAGE_TYPE_GET_TREE,
+  I3IPC_MESSAGE_TYPE_GET_MARKS,
+  I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG,
+  I3IPC_MESSAGE_TYPE_GET_VERSION,
+} i3ipcMessageType;
+
+/**
+ * i3ipcReplyType:
+ * @I3IPC_REPLY_TYPE_COMMAND:
+ * @I3IPC_REPLY_TYPE_WORKSPACES:
+ * @I3IPC_REPLY_TYPE_SUBSCRIBE:
+ * @I3IPC_REPLY_TYPE_OUTPUTS:
+ * @I3IPC_REPLY_TYPE_TREE:
+ * @I3IPC_REPLY_TYPE_MARKS:
+ * @I3IPC_REPLY_TYPE_BAR_CONFIG:
+ * @I3IPC_REPLY_TYPE_VERSION:
+ *
+ * Reply type enumeration for #i3ipcConnection
+ *
+ * This enumeration can be extended at later date
+ */
+typedef enum { /*< underscore_name=i3ipc_reply_type >*/
+  I3IPC_REPLY_TYPE_COMMAND,
+  I3IPC_REPLY_TYPE_WORKSPACES,
+  I3IPC_REPLY_TYPE_SUBSCRIBE,
+  I3IPC_REPLY_TYPE_OUTPUTS,
+  I3IPC_REPLY_TYPE_TREE,
+  I3IPC_REPLY_TYPE_MARKS,
+  I3IPC_REPLY_TYPE_BAR_CONFIG,
+  I3IPC_REPLY_TYPE_VERSION,
+} i3ipcReplyType;
+
+/**
+ * i3ipcEvent:
+ * @I3IPC_EVENT_WORKSPACE:
+ * @I3IPC_EVENT_OUTPUT:
+ * @I3IPC_EVENT_MODE:
+ * @I3IPC_EVENT_WINDOW:
+ * @I3IPC_EVENT_BARCONFIG_UPDATE:
+ *
+ * Event enumeration for #i3ipcConnection
+ *
+ * This enumeration can be extended at later date
+ */
+typedef enum { /*< underscore_name=i3ipc_event >*/
+  I3IPC_EVENT_WORKSPACE =         (1 << 0),
+  I3IPC_EVENT_OUTPUT =            (1 << 1),
+  I3IPC_EVENT_MODE =              (1 << 2),
+  I3IPC_EVENT_WINDOW =            (1 << 3),
+  I3IPC_EVENT_BARCONFIG_UPDATE =  (1 << 4),
+} i3ipcEvent;
 
 struct _i3ipcConnection
 {
