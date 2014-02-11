@@ -649,7 +649,7 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
 /**
  * i3ipc_connection_get_marks:
  * @self: An #i3ipcConnection
- * @error: return location for a GError, or NULL
+ * @err: return location for a GError, or NULL
  *
  * Gets a list of marks (identifiers for containers to easily jump to them
  * later). The reply will be a JSON-encoded list of window marks.
@@ -676,7 +676,7 @@ GVariant *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
  * i3ipc_connection_get_bar_config:
  * @self: An #i3ipcConnection
  * @bar_id: (allow-none): The id of the particular bar
- * @error: return location for a GError, or NULL
+ * @err: return location for a GError, or NULL
  *
  * Gets the configuration (as JSON map) of the workspace bar with the given ID.
  * If no ID is provided, an array with all configured bar IDs is returned
@@ -706,7 +706,7 @@ GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, 
 /**
  * i3ipc_connection_get_version:
  * @self: An #i3ipcConnection
- * @error: return location for a GError, or NULL
+ * @err: return location for a GError, or NULL
  *
  * Gets the version of i3. The reply will be a JSON-encoded dictionary with the
  * major, minor, patch and human-readable version.
