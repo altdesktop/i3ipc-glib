@@ -138,11 +138,9 @@ struct _i3ipcConnectionClass
 /* used by I3IPC_TYPE_CONNECTION */
 GType i3ipc_connection_get_type(void);
 
-i3ipcConnection *i3ipc_connection_new(void);
+i3ipcConnection *i3ipc_connection_new(GError **err);
 
 /* Method definitions */
-
-void i3ipc_connection_connect(i3ipcConnection *self);
 
 gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command);
 

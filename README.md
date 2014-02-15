@@ -52,10 +52,7 @@ from gi.repository.GLib import MainLoop
 
 # Create the Connection object that can be used to send commands and subscribe
 # to events.
-ipc = i3ipc.Connection()
-
-# Establish a connection to the ipc (this step will be eliminated soon).
-ipc.connect()
+ipc = i3ipc.Connection.new()
 
 # Query the ipc for outputs. For now, the result is a dict that represents the
 # parsed reply of a command like `i3-msg -t get_outputs`.

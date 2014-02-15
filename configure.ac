@@ -19,6 +19,7 @@ PKG_CHECK_MODULES([xcb], [xcb])
 PKG_CHECK_MODULES([json], [json-glib-1.0])
 PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.38])
 PKG_CHECK_MODULES([gobject], [gobject-2.0 >= 2.38])
+PKG_CHECK_MODULES([gio], [gio-2.0])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdint.h stdlib.h string.h sys/socket.h])

@@ -35,6 +35,8 @@
 #include <json-glib/json-glib.h>
 #include <gobject/gmarshal.h>
 
+#include <gio/gio.h>
+
 #include "i3ipc-connection.h"
 
 typedef struct i3_ipc_header {
@@ -77,7 +79,9 @@ struct _i3ipcConnectionPrivate {
   uint32_t subscriptions;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT)
+static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE(i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT, G_ADD_PRIVATE(i3ipcConnection) G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE, i3ipc_connection_initable_iface_init))
 
 static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
   //GObjectClass *g_object_class = G_OBJECT_CLASS(klass);
@@ -189,23 +193,31 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
 
 }
 
-static void i3ipc_connection_init (i3ipcConnection *self) {
+static void i3ipc_connection_init(i3ipcConnection *self) {
   self->priv = i3ipc_connection_get_instance_private (self);
   self->priv->parser = json_parser_new();
 }
 
 /**
  * i3ipc_connection_new:
+ * @err: return location for a GError, or NULL
  *
  * Allocates a new #i3ipcConnection
  *
- * Return: a new #i3ipcConnection
+ * Returns: a new #i3ipcConnection
  *
  */
-i3ipcConnection *i3ipc_connection_new() {
+i3ipcConnection *i3ipc_connection_new(GError **err) {
   i3ipcConnection *conn;
+  GError *tmp_error = NULL;
 
-  conn = g_object_new(I3IPC_TYPE_CONNECTION, NULL);
+  conn = g_initable_new(I3IPC_TYPE_CONNECTION, NULL, &tmp_error, NULL);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
   return conn;
 }
 
@@ -380,17 +392,12 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   return TRUE;
 }
 
-/**
- * i3ipc_connection_connect:
- * @self: A #i3ipcConnection
- *
- * Returns: nothing
- *
- * Connects to the ipc. After the connection is established, the connection is
- * ready to send commands and subscribe to events.
- *
- */
-void i3ipc_connection_connect(i3ipcConnection *self) {
+static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable *cancellable, GError **err) {
+  i3ipcConnection *self = I3IPC_CONNECTION(initable);
+  GError *tmp_error = NULL;
+
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
   char *socket_path = get_socket_path();
 
   int cmd_fd = get_file_descriptor(socket_path);
@@ -399,17 +406,31 @@ void i3ipc_connection_connect(i3ipcConnection *self) {
   int sub_fd = get_file_descriptor(socket_path);
   self->sub_channel = g_io_channel_unix_new(sub_fd);
 
-  GError *err = NULL;
-  g_io_channel_set_encoding(self->cmd_channel, NULL, &err);
-  g_assert_no_error(err);
+  g_io_channel_set_encoding(self->cmd_channel, NULL, &tmp_error);
 
-  g_io_channel_set_encoding(self->sub_channel, NULL, &err);
-  g_assert_no_error(err);
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return FALSE;
+  }
+
+  g_io_channel_set_encoding(self->sub_channel, NULL, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return FALSE;
+  }
 
   g_io_add_watch(self->sub_channel, G_IO_IN, (GIOFunc)ipc_on_data, self);
 
   free(socket_path);
+
+  return TRUE;
 }
+
+static void i3ipc_connection_initable_iface_init (GInitableIface *iface) {
+  iface->init = i3ipc_connection_initable_init;
+}
+
 
 /*
  * Sends a message to the ipc.

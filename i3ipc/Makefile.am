@@ -11,6 +11,7 @@ AM_CPPFLAGS = \
 	$(xcb_CFLAGS) \
 	$(json_CFLAGS) \
 	$(gobject_CFLAGS) \
+	$(gio_CFLAGS) \
 	$(NULL)
 
 AM_CFLAGS = -std=gnu99 -Wall
@@ -35,7 +36,7 @@ glib_enum_headers = i3ipc-connection.h
 include $(top_srcdir)/i3ipc/Makefile.am.enums
 
 lib_LTLIBRARIES += libi3ipc-1.0.la
-libi3ipc_1_0_la_LIBADD = $(xcb_LIBS) $(json_LIBS) $(gobject_LIBS)
+libi3ipc_1_0_la_LIBADD = $(xcb_LIBS) $(json_LIBS) $(gobject_LIBS) $(gio_LIBS)
 libi3ipc_1_0_la_SOURCES = $(source_c) $(source_h) $(source_h_private) $(BUILT_SOURCES)
 
 -include $(INTROSPECTION_MAKEFILE)
@@ -47,7 +48,7 @@ if HAVE_INTROSPECTION
 introspection_sources = $(libi3ipc_1_0_la_SOURCES)
 
 i3ipc-1.0.gir: libi3ipc-1.0.la
-i3ipc_1_0_gir_INCLUDES = GObject-2.0
+i3ipc_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0
 i3ipc_1_0_gir_CFLAGS = $(AM_CPPFLAGS)
 i3ipc_1_0_gir_PACKAGES =
 i3ipc_1_0_gir_LIBS = libi3ipc-1.0.la
