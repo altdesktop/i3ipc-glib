@@ -748,14 +748,57 @@ GVariant *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
 }
 
 /**
+ * i3ipc_connection_get_bar_config_list:
+ * @self: An #i3ipcConnection
+ * @err: return location for a GError, or NULL
+ *
+ * Gets a list of all configured bar ids.
+ *
+ * Return value:(transfer none) (element-type utf8): the configured bar ids
+ *
+ */
+GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err) {
+  GError *tmp_error = NULL;
+  GSList *retval = NULL;
+
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, "", &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+
+  int num_elements = json_reader_count_elements(reader);
+
+  for (int i = 0; i < num_elements; i += 1) {
+    json_reader_read_element(reader, i);
+    retval = g_slist_prepend(retval, g_strdup(json_reader_get_string_value(reader)));
+    json_reader_end_element(reader);
+  }
+
+  g_object_unref(reader);
+
+  return retval;
+}
+
+/**
  * i3ipc_connection_get_bar_config:
  * @self: An #i3ipcConnection
- * @bar_id: (allow-none): The id of the particular bar
+ * @bar_id: The id of the particular bar
  * @err: return location for a GError, or NULL
  *
  * Gets the configuration (as JSON map) of the workspace bar with the given ID.
- * If no ID is provided, an array with all configured bar IDs is returned
- * instead.
  *
  * Return value:(transfer none) the bar config reply
  *
@@ -763,10 +806,7 @@ GVariant *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
 GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err) {
   GError *tmp_error = NULL;
 
-  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
-
-  if (bar_id == NULL)
-    bar_id = "";
+  g_return_val_if_fail(bar_id != NULL || err == NULL || *err == NULL, NULL);
 
   GVariant *retval = ipc_query_sync(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
 
