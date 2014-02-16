@@ -727,22 +727,42 @@ gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
  * @err: return location for a GError, or NULL
  *
  * Gets a list of marks (identifiers for containers to easily jump to them
- * later). The reply will be a JSON-encoded list of window marks.
+ * later). The reply will be a list of window marks.
  *
- * Return value: (transfer none) a list of window marks
+ * Return value: (transfer none) (element-type utf8): a list of strings representing marks
  *
  */
-GVariant *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
+GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
   GError *tmp_error = NULL;
+  GSList *retval = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  GVariant *retval = ipc_query_sync(self, I3IPC_MESSAGE_TYPE_GET_MARKS, "", &tmp_error);
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_MARKS, "", &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
     return NULL;
   }
+
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+
+  int num_elements = json_reader_count_elements(reader);
+
+  for (int i = 0; i < num_elements; i += 1) {
+    json_reader_read_element(reader, i);
+    retval = g_slist_prepend(retval, g_strdup(json_reader_get_string_value(reader)));
+    json_reader_end_element(reader);
+  }
+
+  g_object_unref(reader);
 
   return retval;
 }
