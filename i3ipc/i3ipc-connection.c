@@ -74,6 +74,46 @@ static int find_signal_number(char *name) {
 
 static guint connection_signals[LAST_SIGNAL] = {0};
 
+/**
+ * i3ipc_version_reply_copy:
+ * @version: a #i3ipcVersionReply struct
+ *
+ * Creates a dynamically allocated i3ipc version reply as a copy of @version.
+ *
+ * This function is not intended for use in applications, because you can just
+ * copy structs by value (`i3ipcVersionReply new_version = version;`).
+ * You must free this version with i3ipc_version_reply_free().
+ *
+ * Return value: a newly-allocated copy of @version
+ */
+i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version) {
+  i3ipcVersionReply *retval;
+
+  g_return_val_if_fail(version != NULL, NULL);
+
+  retval = g_slice_new(i3ipcVersionReply);
+  *retval = *version;
+
+  return retval;
+}
+
+/**
+ * i3ipc_version_reply_free:
+ * @version: (allow-none): a #i3ipcVersionReply
+ *
+ * Frees @version. If @version is %NULL, it simply returns.
+ */
+void i3ipc_version_reply_free(i3ipcVersionReply *version) {
+  if (!version)
+    return;
+
+  g_free(version->human_readable);
+  g_slice_free(i3ipcVersionReply, version);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcVersionReply, i3ipc_version_reply,
+    i3ipc_version_reply_copy, i3ipc_version_reply_free);
+
 struct _i3ipcConnectionPrivate {
   JsonParser *parser;
   uint32_t subscriptions;
@@ -743,22 +783,49 @@ GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, 
  * @self: An #i3ipcConnection
  * @err: return location for a GError, or NULL
  *
- * Gets the version of i3. The reply will be a JSON-encoded dictionary with the
- * major, minor, patch and human-readable version.
+ * Gets the version of i3. The reply will be a boxed structure with the major,
+ * minor, patch and human-readable version.
  *
- * Return value: (transfer none) the version reply
+ * Return value: (transfer none) an #i3ipcVersionReply
  */
-GVariant *i3ipc_connection_get_version(i3ipcConnection *self, GError **err) {
+i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err) {
   GError *tmp_error = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  GVariant *retval = ipc_query_sync(self, I3IPC_MESSAGE_TYPE_GET_VERSION, "", &tmp_error);
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_VERSION, "", &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
     return NULL;
   }
+
+  i3ipcVersionReply *retval = g_new(i3ipcVersionReply, 1);
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  json_reader_read_member(reader, "major");
+  retval->major = json_reader_get_int_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "minor");
+  retval->minor = json_reader_get_int_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "patch");
+  retval->patch = json_reader_get_int_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "human_readable");
+  retval->human_readable = g_strdup(json_reader_get_string_value(reader));
+  json_reader_end_member(reader);
+
+  g_object_unref(reader);
 
   return retval;
 }

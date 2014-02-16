@@ -47,6 +47,28 @@ typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
 typedef struct _i3ipcConnectionPrivate i3ipcConnectionPrivate;
 
 /**
+ * i3ipcVersionReply:
+ * @major: The major version of i3, such as 4.
+ * @minor: The minor version of i3, such as 2.
+ * @patch: The patch version of i3, such as 1.
+ * @human_readable: A human-readable version of i3.
+ *
+ * The #i3ipcVersionReply is the primary structure for accessing the reply of
+ * an ipc version command.
+ */
+struct _i3ipcVersionReply
+{
+  gint major;
+  gint minor;
+  gint patch;
+  gchar *human_readable;
+};
+
+i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version);
+void i3ipc_version_reply_free(i3ipcVersionReply *version);
+GType i3ipc_version_reply_get_type(void);
+
+/**
  * i3ipcMessageType:
  * @I3IPC_MESSAGE_TYPE_COMMAND:
  * @I3IPC_MESSAGE_TYPE_GET_WORKSPACES:
@@ -158,6 +180,6 @@ GVariant *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err);
 
 GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err);
 
-GVariant *i3ipc_connection_get_version(i3ipcConnection *self, GError **err);
+i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err);
 
 #endif
