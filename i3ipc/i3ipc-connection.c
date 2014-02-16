@@ -466,34 +466,48 @@ static int ipc_send_message(GIOChannel *channel, const uint32_t message_size, co
   return 0;
 }
 
-/*
- * Synchronously sends the command to the ipc and returns the result.
- */
-static gboolean ipc_command_sync(i3ipcConnection *conn, uint32_t message_type, char *command, GError **err) {
-  GIOChannel *channel = (message_type == I3IPC_MESSAGE_TYPE_SUBSCRIBE ? conn->sub_channel : conn->cmd_channel);
+/**
+  * i3ipc_connection_message:
+  * @self: A #i3ipcConnection
+  * @message_type: The type of message to send to i3
+  * @payload: (allow-none): The body of the command
+  * @err: return location for a GError, or NULL
+  *
+  * Sends a command to the ipc synchronously.
+  *
+  * Returns: The reply of the ipc as a string
+  *
+  */
+gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err) {
+  GError *tmp_error = NULL;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
-  ipc_send_message(channel, strlen(command), message_type, command, err);
-  g_assert_no_error(*err);
 
-  ipc_recv_message(channel, &reply_type, &reply_length, &reply, err);
-  g_assert_no_error(*err);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  gboolean result = FALSE;
+  if (payload == NULL)
+    payload = "";
 
-  if (json_parser_load_from_data(conn->priv->parser, reply, reply_length, err)) {
-    g_assert_no_error(*err);
+  GIOChannel *channel = (message_type == I3IPC_MESSAGE_TYPE_SUBSCRIBE ? self->sub_channel : self->cmd_channel);
 
-    JsonReader *reader = json_reader_new(json_parser_get_root(conn->priv->parser));
-    json_reader_read_element(reader, 0);
-    json_reader_read_member(reader, "success");
-    result = json_reader_get_boolean_value(reader);
+  ipc_send_message(channel, strlen(payload), message_type, payload, &tmp_error);
 
-    g_object_unref(reader);
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
   }
 
-  return result;
+  ipc_recv_message(channel, &reply_type, &reply_length, &reply, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  reply[reply_length] = '\0';
+
+  return reply;
 }
 
 /*
@@ -541,10 +555,10 @@ static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **
 
   sprintf(command, "[\"%s\"]", event_name);
 
-  gboolean result = ipc_command_sync(conn, I3IPC_MESSAGE_TYPE_SUBSCRIBE, command, err);
+  i3ipc_connection_message(conn, I3IPC_MESSAGE_TYPE_SUBSCRIBE, command, err);
   g_assert_no_error(*err);
 
-  return result;
+  return TRUE;
 }
 
 /**
@@ -559,10 +573,10 @@ static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **
   */
 gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command) {
   GError *err = NULL;
-  gboolean result = ipc_command_sync(self, I3IPC_MESSAGE_TYPE_COMMAND, command, &err);
+  i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_COMMAND, command, &err);
   g_assert_no_error(err);
 
-  return result;
+  return TRUE;
 }
 
 /**

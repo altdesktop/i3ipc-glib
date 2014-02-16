@@ -142,6 +142,8 @@ i3ipcConnection *i3ipc_connection_new(GError **err);
 
 /* Method definitions */
 
+gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err);
+
 gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command);
 
 void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback);
