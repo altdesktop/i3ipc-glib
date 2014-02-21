@@ -114,6 +114,46 @@ void i3ipc_version_reply_free(i3ipcVersionReply *version) {
 G_DEFINE_BOXED_TYPE(i3ipcVersionReply, i3ipc_version_reply,
     i3ipc_version_reply_copy, i3ipc_version_reply_free);
 
+/**
+ * i3ipc_bar_config_reply_copy:
+ * @config: a #i3ipcBarConfigReply struct
+ *
+ * Creates a dynamically allocated i3ipc version reply as a copy of @config.
+ *
+ * Return value: a newly-allocated copy of @config
+ */
+i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config) {
+  i3ipcBarConfigReply *retval;
+
+  g_return_val_if_fail(config != NULL, NULL);
+
+  retval = g_slice_new(i3ipcBarConfigReply);
+  *retval = *config;
+
+  return retval;
+}
+
+/**
+ * i3ipc_bar_config_reply_free:
+ * @config: (allow-none): a #i3ipcBarConfigReply
+ *
+ * Frees @config. If @config is %NULL, it simply returns.
+ */
+void i3ipc_bar_config_reply_free(i3ipcBarConfigReply *config) {
+  if (!config)
+    return;
+
+  g_free(config->id);
+  g_free(config->mode);
+  g_free(config->position);
+  g_free(config->status_command);
+  g_free(config->font);
+  g_hash_table_destroy(config->colors);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcBarConfigReply, i3ipc_bar_config_reply,
+    i3ipc_bar_config_reply_copy, i3ipc_bar_config_reply_free)
+
 struct _i3ipcConnectionPrivate {
   JsonParser *parser;
   uint32_t subscriptions;
@@ -551,43 +591,6 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
 }
 
 /*
- * Synchronously sends the query to the ipc and returns the result as a GVariant.
- * Returns NULL if an error occurred.
- */
-static GVariant *ipc_query_sync(i3ipcConnection *conn, uint32_t message_type, char *command, GError **err) {
-  GError *tmp_error = NULL;
-
-  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
-
-  uint32_t reply_length;
-  uint32_t reply_type;
-  gchar *reply;
-
-  ipc_send_message(conn->cmd_channel, strlen(command), message_type, command, &tmp_error);
-
-  if (tmp_error != NULL) {
-    g_propagate_error(err, tmp_error);
-    return NULL;
-  }
-
-  ipc_recv_message(conn->cmd_channel, &reply_type, &reply_length, &reply, &tmp_error);
-
-  if (tmp_error != NULL) {
-    g_propagate_error(err, tmp_error);
-    return NULL;
-  }
-
-  GVariant *retval = json_gvariant_deserialize_data(reply, reply_length, NULL, &tmp_error);
-
-  if (tmp_error != NULL) {
-    g_propagate_error(err, tmp_error);
-    return NULL;
-  }
-
-  return retval;
-}
-
-/*
  * Subscribes to the event with the given name.
  */
 static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **err) {
@@ -818,22 +821,78 @@ GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err
  * @bar_id: The id of the particular bar
  * @err: return location for a GError, or NULL
  *
- * Gets the configuration (as JSON map) of the workspace bar with the given ID.
+ * Gets the configuration of the workspace bar with the given ID.
  *
  * Return value:(transfer none) the bar config reply
  *
  */
-GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err) {
+i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err) {
   GError *tmp_error = NULL;
 
-  g_return_val_if_fail(bar_id != NULL || err == NULL || *err == NULL, NULL);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  GVariant *retval = ipc_query_sync(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
     return NULL;
   }
+
+  i3ipcBarConfigReply *retval = g_new(i3ipcBarConfigReply, 1);
+  retval->colors = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  json_reader_read_member(reader, "id");
+  retval->id = g_strdup(json_reader_get_string_value(reader));
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "mode");
+  retval->mode = g_strdup(json_reader_get_string_value(reader));
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "position");
+  retval->position = g_strdup(json_reader_get_string_value(reader));
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "status_command");
+  retval->status_command = g_strdup(json_reader_get_string_value(reader));
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "font");
+  retval->font = g_strdup(json_reader_get_string_value(reader));
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "workspace_buttons");
+  retval->workspace_buttons = json_reader_get_boolean_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "binding_mode_indicator");
+  retval->binding_mode_indicator = json_reader_get_boolean_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "verbose");
+  retval->verbose = json_reader_get_boolean_value(reader);
+  json_reader_end_member(reader);
+
+  json_reader_read_member(reader, "colors");
+
+  int num_colors = json_reader_count_members(reader);
+  gchar **colors_list = json_reader_list_members(reader);
+
+  for (int i = 0; i < num_colors; i += 1) {
+      json_reader_read_member(reader, colors_list[i]);
+      g_hash_table_insert(retval->colors, g_strdup(colors_list[i]), g_strdup(json_reader_get_string_value(reader)));
+      json_reader_end_member(reader);
+  }
+
+  g_object_unref(reader);
 
   return retval;
 }

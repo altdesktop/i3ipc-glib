@@ -40,8 +40,11 @@
 #define I3IPC_CONNECTION_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), I3IPC_TYPE_CONNECTION, i3ipcConnectionClass))
 
 #define I3IPC_TYPE_VERSION_REPLY          (i3ipc_version_reply_get_type ())
+#define I3IPC_TYPE_BAR_CONFIG_REPLY       (i3ipc_bar_config_reply_get_type ())
 
-typedef struct _i3ipcVersionReply      i3ipcVersionReply;
+typedef struct _i3ipcVersionReply            i3ipcVersionReply;
+typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
+
 typedef struct _i3ipcConnection        i3ipcConnection;
 typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
 typedef struct _i3ipcConnectionPrivate i3ipcConnectionPrivate;
@@ -67,6 +70,38 @@ struct _i3ipcVersionReply
 i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version);
 void i3ipc_version_reply_free(i3ipcVersionReply *version);
 GType i3ipc_version_reply_get_type(void);
+
+/**
+ * i3ipcBarConfigReply:
+ * @id:
+ * @mode:
+ * @position:
+ * @status_command:
+ * @font:
+ * @workspace_buttons:
+ * @binding_mode_indicator:
+ * @verbose:
+ * @colors: (element-type utf8 utf8):
+ *
+ * The #i3ipcBarConfigReply is the primary structure for accessing the reply of
+ * an ipc bar config command.
+ */
+struct _i3ipcBarConfigReply
+{
+  gchar *id;
+  gchar *mode;
+  gchar *position;
+  gchar *status_command;
+  gchar *font;
+  gboolean workspace_buttons;
+  gboolean binding_mode_indicator;
+  gboolean verbose;
+  GHashTable *colors;
+};
+
+i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config);
+void i3ipc_bar_config_reply_free(i3ipcBarConfigReply *config);
+GType i3ipc_bar_config_reply_get_type(void);
 
 /**
  * i3ipcMessageType:
@@ -180,7 +215,7 @@ GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err);
 
 GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err);
 
-GVariant *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err);
+i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err);
 
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err);
 
