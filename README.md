@@ -54,7 +54,7 @@ from gi.repository.GLib import MainLoop
 # to events.
 ipc = i3ipc.Connection.new()
 
-# Query the ipc for outputs. For now, the result is a dict that represents the
+# Query the ipc for outputs. For now, the result is a list that represents the
 # parsed reply of a command like `i3-msg -t get_outputs`.
 outputs = ipc.get_outputs()
 

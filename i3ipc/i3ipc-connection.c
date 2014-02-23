@@ -37,6 +37,7 @@
 
 #include <gio/gio.h>
 
+#include "i3ipc-con.h"
 #include "i3ipc-connection.h"
 
 typedef struct i3_ipc_header {
@@ -153,6 +154,43 @@ void i3ipc_bar_config_reply_free(i3ipcBarConfigReply *config) {
 
 G_DEFINE_BOXED_TYPE(i3ipcBarConfigReply, i3ipc_bar_config_reply,
     i3ipc_bar_config_reply_copy, i3ipc_bar_config_reply_free)
+
+/**
+ * i3ipc_output_reply_copy:
+ * @output: a #i3ipcOutputReply struct
+ *
+ * Creates a dynamically allocated i3ipc output reply as a copy of @output.
+ *
+ * Return value: a newly-allocated copy of @output
+ */
+i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output) {
+  i3ipcOutputReply *retval;
+
+  g_return_val_if_fail(output != NULL, NULL);
+
+  retval = g_slice_new(i3ipcOutputReply);
+  *retval = *output;
+
+  return retval;
+}
+
+/**
+ * i3ipc_output_reply_free:
+ * @output: (allow-none): a #i3ipcOutputReply
+ *
+ * Frees @output. If @output is %NULL, it simply returns.
+ */
+void i3ipc_output_reply_free(i3ipcOutputReply *output) {
+  if (!output)
+    return;
+
+  g_free(output->name);
+  g_free(output->current_workspace);
+  i3ipc_rect_free(output->rect);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcOutputReply, i3ipc_output_reply,
+    i3ipc_output_reply_copy, i3ipc_output_reply_free)
 
 struct _i3ipcConnectionPrivate {
   JsonParser *parser;
@@ -675,28 +713,84 @@ gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self) {
 /**
  * i3ipc_connection_get_outputs:
  * @self: An #i3ipcConnection
+ * @err: return location of a GError, or NULL
  *
- * Gets the current outputs. The reply will be a JSON-encoded list of outputs
- * (see the reply section of docs/ipc, e.g. at
- * http://i3ipc.org/docs/ipc.html#_receiving_replies_from_i3).
+ * Gets the current outputs. The reply will be a list of outputs
  *
- * Returns: a string reply
+ * Returns:(transfer none) (element-type i3ipcOutputReply): a list of outputs
  *
  */
-gchar *i3ipc_connection_get_outputs(i3ipcConnection *self) {
-  GError *err = NULL;
-  uint32_t reply_length;
-  uint32_t reply_type;
-  gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_OUTPUTS, "", &err);
-  g_assert_no_error(err);
+GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
+  GError *tmp_error = NULL;
+  GSList *retval = NULL;
 
-  ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
-  g_assert_no_error(err);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  reply[reply_length] = '\0';
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_OUTPUTS, "", &tmp_error);
 
-  return reply;
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+
+  int num_outputs = json_reader_count_elements(reader);
+
+  for (int i = 0; i < num_outputs; i += 1) {
+    i3ipcOutputReply *output = g_new(i3ipcOutputReply, 1);
+    output->rect = g_new(i3ipcRect, 1);
+
+    json_reader_read_element(reader, i);
+
+    json_reader_read_member(reader, "name");
+    output->name = g_strdup(json_reader_get_string_value(reader));
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "active");
+    output->active = json_reader_get_boolean_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "current_workspace");
+    output->current_workspace = g_strdup(json_reader_get_string_value(reader));
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "rect");
+    /* begin rect */
+    json_reader_read_member(reader, "x");
+    output->rect->x = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "y");
+    output->rect->y = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "width");
+    output->rect->width = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "height");
+    output->rect->height = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+    /* end rect */
+
+    json_reader_end_member(reader);
+
+    json_reader_end_element(reader);
+
+    retval = g_slist_prepend(retval, output);
+  }
+
+  g_object_unref(reader);
+
+  return retval;
 }
 /**
  * i3ipc_connection_get_tree:

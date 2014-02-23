@@ -21,6 +21,7 @@
 #ifndef __I3IPC_CONNECTION_H__
 #define __I3IPC_CONNECTION_H__
 
+#include "i3ipc-con.h"
 #include <glib-object.h>
 
 #define I3IPC_MAGIC "i3-ipc"
@@ -41,9 +42,11 @@
 
 #define I3IPC_TYPE_VERSION_REPLY          (i3ipc_version_reply_get_type ())
 #define I3IPC_TYPE_BAR_CONFIG_REPLY       (i3ipc_bar_config_reply_get_type ())
+#define I3IPC_TYPE_OUTPUT_REPLY           (i3ipc_output_reply_get_type ())
 
 typedef struct _i3ipcVersionReply            i3ipcVersionReply;
 typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
+typedef struct _i3ipcOutputReply             i3ipcOutputReply;
 
 typedef struct _i3ipcConnection        i3ipcConnection;
 typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
@@ -102,6 +105,27 @@ struct _i3ipcBarConfigReply
 i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config);
 void i3ipc_bar_config_reply_free(i3ipcBarConfigReply *config);
 GType i3ipc_bar_config_reply_get_type(void);
+
+/**
+ * i3ipcOutputReply:
+ * @name:
+ * @active:
+ * @current_workspace:
+ * @rect:
+ *
+ * The #i3ipcOutputReply is the primary structure for accessing the reply of an ipc output command.
+ */
+struct _i3ipcOutputReply
+{
+  gchar *name;
+  gboolean active;
+  gchar *current_workspace;
+  i3ipcRect *rect;
+};
+
+i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output);
+void i3ipc_output_reply_free(i3ipcOutputReply *output);
+GType i3ipc_output_reply_get_type(void);
 
 /**
  * i3ipcMessageType:
@@ -207,7 +231,7 @@ void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback
 
 gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self);
 
-gchar *i3ipc_connection_get_outputs(i3ipcConnection *self);
+GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err);
 
 gchar *i3ipc_connection_get_tree(i3ipcConnection *self);
 

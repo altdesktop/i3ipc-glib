@@ -38,9 +38,34 @@
 #define I3IPC_IS_CON_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), I3IPC_TYPE_CON))
 #define I3IPC_CON_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), I3IPC_TYPE_CON, i3ipcConClass))
 
+#define I3IPC_TYPE_RECT          (i3ipc_rect_get_type ())
+
+typedef struct _i3ipcRect       i3ipcRect;
+
 typedef struct _i3ipcCon        i3ipcCon;
 typedef struct _i3ipcConClass   i3ipcConClass;
 typedef struct _i3ipcConPrivate i3ipcConPrivate;
+
+/**
+ * i3ipcRect:
+ * @x:
+ * @y:
+ * @width:
+ * @height:
+ *
+ * An #i3ipcRect descrites the extents of a container.
+ */
+struct _i3ipcRect
+{
+  gint x;
+  gint y;
+  gint width;
+  gint height;
+};
+
+i3ipcRect *i3ipc_rect_copy(i3ipcRect *rect);
+void i3ipc_rect_free(i3ipcRect *rect);
+GType i3ipc_rect_get_type(void);
 
 struct _i3ipcCon
 {

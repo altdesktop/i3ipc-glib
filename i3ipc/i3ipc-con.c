@@ -24,6 +24,41 @@
 
 #include "i3ipc-con.h"
 
+/**
+ * i3ipc_rect_copy:
+ * @rect: an #i3ipcRect struct
+ *
+ * Creates a dynamically allocated i3ipc rect as a copy of @rect.
+ *
+ * Return value: a newly-allocated copy of @rect.
+ */
+i3ipcRect *i3ipc_rect_copy(i3ipcRect *rect) {
+  i3ipcRect *retval;
+
+  g_return_val_if_fail(rect != NULL, NULL);
+
+  retval = g_slice_new(i3ipcRect);
+  *retval = *rect;
+
+  return retval;
+}
+
+/**
+ * i3ipc_rect_free:
+ * @rect: (allow-none): an #i3ipcRect
+ *
+ * Frees @rect. If @rect is %NULL, it simply returns.
+ */
+void i3ipc_rect_free(i3ipcRect *rect) {
+  if (!rect)
+    return;
+
+  g_slice_free(i3ipcRect, rect);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcRect, i3ipc_rect,
+    i3ipc_rect_copy, i3ipc_rect_free);
+
 struct _i3ipcConPrivate {
   gint reserved;
 };
