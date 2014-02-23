@@ -192,6 +192,42 @@ void i3ipc_output_reply_free(i3ipcOutputReply *output) {
 G_DEFINE_BOXED_TYPE(i3ipcOutputReply, i3ipc_output_reply,
     i3ipc_output_reply_copy, i3ipc_output_reply_free)
 
+/**
+ * i3ipc_workspace_reply_copy:
+ * @workspace: a #i3ipcWorkspaceReply
+ *
+ * Creates a dynamically allocated i3ipc workspace reply as a copy of
+ * @workspace.
+ */
+i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace) {
+  i3ipcWorkspaceReply *retval;
+
+  g_return_val_if_fail(workspace != NULL, NULL);
+
+  retval = g_slice_new(i3ipcWorkspaceReply);
+  *retval = *workspace;
+
+  return retval;
+}
+
+/**
+ * i3ipc_workspace_reply_free:
+ * @workspace: (allow-none): a #i3ipcWorkspaceReply
+ *
+ * Frees @workspace. If @workspace is %NULL, it simply returns.
+ */
+void i3ipc_workspace_reply_free(i3ipcWorkspaceReply *workspace) {
+  if (!workspace)
+    return;
+
+  g_free(workspace->name);
+  g_free(workspace->output);
+  i3ipc_rect_free(workspace->rect);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcWorkspaceReply, i3ipc_workspace_reply,
+    i3ipc_workspace_reply_copy, i3ipc_workspace_reply_free)
+
 struct _i3ipcConnectionPrivate {
   JsonParser *parser;
   uint32_t subscriptions;
@@ -687,27 +723,96 @@ void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback
 /**
  * i3ipc_connection_get_workspaces:
  * @self: An #i3ipcConnection
+ * @err: return location of a GError, or NULL
  *
- * Gets the current workspaces. The reply will be a JSON-encoded list of
- * workspaces
+ * Gets the current workspaces. The reply will be list workspaces
  *
- * Returns: a string reply
+ * Returns:(transfer none) (element-type i3ipcWorkspaceReply): a list of workspaces
  *
  */
-gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self) {
-  GError *err = NULL;
-  uint32_t reply_length;
-  uint32_t reply_type;
-  gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_WORKSPACES, "", &err);
-  g_assert_no_error(err);
+GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
+  GError *tmp_error = NULL;
+  GSList *retval = NULL;
 
-  ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
-  g_assert_no_error(err);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  reply[reply_length] = '\0';
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_WORKSPACES, "", &tmp_error);
 
-  return reply;
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+
+  int num_workspaces = json_reader_count_elements(reader);
+
+  for (int i = 0; i < num_workspaces; i += 1) {
+    i3ipcWorkspaceReply *workspace = g_new(i3ipcWorkspaceReply, 1);
+    workspace->rect = g_new(i3ipcRect, 1);
+
+    json_reader_read_element(reader, i);
+
+    json_reader_read_member(reader, "name");
+    workspace->name = g_strdup(json_reader_get_string_value(reader));
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "num");
+    workspace->num = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "visible");
+    workspace->visible = json_reader_get_boolean_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "focused");
+    workspace->focused = json_reader_get_boolean_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "urgent");
+    workspace->urgent = json_reader_get_boolean_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "output");
+    workspace->output = g_strdup(json_reader_get_string_value(reader));
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "rect");
+    /* begin rect */
+    json_reader_read_member(reader, "x");
+    workspace->rect->x = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "y");
+    workspace->rect->y = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "width");
+    workspace->rect->width = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+
+    json_reader_read_member(reader, "height");
+    workspace->rect->height = json_reader_get_int_value(reader);
+    json_reader_end_member(reader);
+    /* end rect */
+
+    json_reader_end_member(reader);
+
+    json_reader_end_element(reader);
+
+    retval = g_slist_prepend(retval, workspace);
+  }
+
+  g_object_unref(reader);
+
+  return retval;
 }
 
 /**

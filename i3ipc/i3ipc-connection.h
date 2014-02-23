@@ -43,10 +43,12 @@
 #define I3IPC_TYPE_VERSION_REPLY          (i3ipc_version_reply_get_type ())
 #define I3IPC_TYPE_BAR_CONFIG_REPLY       (i3ipc_bar_config_reply_get_type ())
 #define I3IPC_TYPE_OUTPUT_REPLY           (i3ipc_output_reply_get_type ())
+#define I3IPC_TYPE_WORKSPACE_REPLY        (i3ipc_workspace_reply_get_type ())
 
 typedef struct _i3ipcVersionReply            i3ipcVersionReply;
 typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
 typedef struct _i3ipcOutputReply             i3ipcOutputReply;
+typedef struct _i3ipcWorkspaceReply          i3ipcWorkspaceReply;
 
 typedef struct _i3ipcConnection        i3ipcConnection;
 typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
@@ -126,6 +128,34 @@ struct _i3ipcOutputReply
 i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output);
 void i3ipc_output_reply_free(i3ipcOutputReply *output);
 GType i3ipc_output_reply_get_type(void);
+
+/**
+ * i3ipcWorkspaceReply:
+ * @num:
+ * @name:
+ * @visible:
+ * @focused:
+ * @urgent:
+ * @output:
+ * @rect:
+ *
+ * The #i3ipcWorkspaceReply is the primary structure for accessing the reply of
+ * an ipc workspace command.
+ */
+struct _i3ipcWorkspaceReply
+{
+  gint num;
+  gchar *name;
+  gboolean visible;
+  gboolean focused;
+  gboolean urgent;
+  gchar *output;
+  i3ipcRect *rect;
+};
+
+i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace);
+void i3ipc_workspace_reply_free(i3ipcWorkspaceReply *workspace);
+GType i3ipc_workspace_reply_get_type(void);
 
 /**
  * i3ipcMessageType:
@@ -229,7 +259,7 @@ gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command);
 
 void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback);
 
-gchar *i3ipc_connection_get_workspaces(i3ipcConnection *self);
+GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err);
 
 GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err);
 
