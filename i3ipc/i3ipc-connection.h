@@ -281,7 +281,7 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
 
 i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err);
 
-void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback);
+i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err);
 
 GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err);
 

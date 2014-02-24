@@ -37,6 +37,7 @@
 
 #include <gio/gio.h>
 
+#include "i3ipc-enum-types.h"
 #include "i3ipc-con.h"
 #include "i3ipc-connection.h"
 
@@ -48,6 +49,16 @@ typedef struct i3_ipc_header {
 } __attribute__ ((packed)) i3_ipc_header_t;
 
 enum {
+  PROP_0,
+
+  PROP_SUBSCRIPTIONS,
+
+  N_PROPERTIES
+};
+
+static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
+
+enum {
   WORKSPACE,
   OUTPUT,
   MODE,
@@ -55,23 +66,6 @@ enum {
   BARCONFIG_UPDATE,
   LAST_SIGNAL
 };
-
-static const char *signal_names[LAST_SIGNAL] = {
-  "workspace",
-  "output",
-  "mode",
-  "window",
-  "barconfig_update"
-};
-
-static int find_signal_number(char *name) {
-  for (int i = 0; i < LAST_SIGNAL; i += 1)
-    if (strcmp(signal_names[i], name) == 0)
-      return i;
-
-  /* not found */
-  return -1;
-}
 
 static guint connection_signals[LAST_SIGNAL] = {0};
 
@@ -265,15 +259,54 @@ G_DEFINE_BOXED_TYPE(i3ipcWorkspaceReply, i3ipc_workspace_reply,
 
 struct _i3ipcConnectionPrivate {
   JsonParser *parser;
-  uint32_t subscriptions;
+  i3ipcEvent subscriptions;
 };
 
 static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE(i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT, G_ADD_PRIVATE(i3ipcConnection) G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE, i3ipc_connection_initable_iface_init))
 
+static void i3ipc_connection_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec) {
+  //i3ipcConnnection *self = I3IPC_CONNECTION(object);
+
+  switch (property_id)
+  {
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+      break;
+  }
+}
+
+static void i3ipc_connection_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec) {
+  i3ipcConnection *self = I3IPC_CONNECTION(object);
+
+  switch (property_id)
+  {
+    case PROP_SUBSCRIPTIONS:
+      g_value_set_flags(value, self->priv->subscriptions);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+      break;
+  }
+}
+
 static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
-  //GObjectClass *g_object_class = G_OBJECT_CLASS(klass);
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+
+  gobject_class->set_property = i3ipc_connection_set_property;
+  gobject_class->get_property = i3ipc_connection_get_property;
+
+  obj_properties[PROP_SUBSCRIPTIONS] =
+    g_param_spec_flags("subscriptions",
+        "Connection subscriptions",
+        "The subscriptions this connection is subscribed to",
+        I3IPC_TYPE_EVENT,
+        0,
+        G_PARAM_READABLE);
+
+  g_object_class_install_properties(gobject_class, N_PROPERTIES, obj_properties);
 
   /**
    * i3ipcConnection::workspace:
@@ -286,7 +319,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
    *
    */
   connection_signals[WORKSPACE] = g_signal_new(
-      signal_names[WORKSPACE],               /* signal_name */
+      "workspace",               /* signal_name */
       I3IPC_TYPE_CONNECTION,                  /* itype */
       G_SIGNAL_RUN_LAST,                    /* signal_flags */
       0,                                     /* class_offset */
@@ -307,7 +340,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
    *
    */
   connection_signals[OUTPUT] = g_signal_new(
-      signal_names[OUTPUT],                  /* signal_name */
+      "output",                  /* signal_name */
       I3IPC_TYPE_CONNECTION,                  /* itype */
       G_SIGNAL_RUN_FIRST,                    /* signal_flags */
       0,                                     /* class_offset */
@@ -327,7 +360,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
    *
    */
   connection_signals[MODE] = g_signal_new(
-      signal_names[MODE],                    /* signal_name */
+      "mode",                    /* signal_name */
       I3IPC_TYPE_CONNECTION,                  /* itype */
       G_SIGNAL_RUN_FIRST,                    /* signal_flags */
       0,                                     /* class_offset */
@@ -348,7 +381,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
    *
    */
   connection_signals[WINDOW] = g_signal_new(
-      signal_names[WINDOW],                  /* signal_name */
+      "window",                  /* signal_name */
       I3IPC_TYPE_CONNECTION,                  /* itype */
       G_SIGNAL_RUN_FIRST,                    /* signal_flags */
       0,                                     /* class_offset */
@@ -369,7 +402,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
    *
    */
   connection_signals[BARCONFIG_UPDATE] = g_signal_new(
-      signal_names[BARCONFIG_UPDATE],        /* signal_name */
+      "barconfig_update",                     /* signal_name */
       I3IPC_TYPE_CONNECTION,                  /* itype */
       G_SIGNAL_RUN_FIRST,                    /* signal_flags */
       0,                                     /* class_offset */
@@ -699,20 +732,6 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
   return reply;
 }
 
-/*
- * Subscribes to the event with the given name.
- */
-static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **err) {
-  char command[strlen(event_name) + 4];
-
-  sprintf(command, "[\"%s\"]", event_name);
-
-  i3ipc_connection_message(conn, I3IPC_MESSAGE_TYPE_SUBSCRIBE, command, err);
-  g_assert_no_error(*err);
-
-  return TRUE;
-}
-
 /**
   * i3ipc_connection_command:
   * @self: A #i3ipcConnection
@@ -766,27 +785,77 @@ i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *comman
 }
 
 /**
-  * i3ipc_connection_on:
+  * i3ipc_connection_subscribe:
   * @self: A #i3ipcConnection
-  * @event: The name of an IPC event
-  * @callback: Callback for the event
+  * @events: The name of an IPC event
+  * @err:(allow-none): The location of a GError or NULL
   *
-  * Subscribes to the event given by its name.
+  * Subscribes to the events given by the flags
   *
-  * Returns: nothing
+  * Returns:(transfer none): The ipc reply
   *
   */
-void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback) {
-  int signal = find_signal_number(event);
-  if (signal != -1) {
-    g_signal_connect_closure(self, event, callback, TRUE);
-    if (!(self->priv->subscriptions & (1 << signal))) {
-      GError *err = NULL;
-      ipc_subscribe(self, event, &err);
-      g_assert_no_error(err);
-      self->priv->subscriptions |= (1 << signal);
-    }
+i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err) {
+  GError *tmp_error = NULL;
+  i3ipcCommandReply *retval;
+
+  if (!(events & ~self->priv->subscriptions)) {
+    /* No new events */
+    retval = g_new0(i3ipcCommandReply, 1);
+    retval->success = TRUE;
+    return retval;
   }
+
+  JsonBuilder *builder = json_builder_new();
+  json_builder_begin_array(builder);
+
+  if (events & (I3IPC_EVENT_WINDOW & ~self->priv->subscriptions))
+    json_builder_add_string_value(builder, "window");
+
+  if (events & (I3IPC_EVENT_BARCONFIG_UPDATE & ~self->priv->subscriptions))
+    json_builder_add_string_value(builder, "barconfig_update");
+
+  if (events & (I3IPC_EVENT_MODE & ~self->priv->subscriptions))
+    json_builder_add_string_value(builder, "mode");
+
+  if (events & (I3IPC_EVENT_OUTPUT & ~self->priv->subscriptions))
+    json_builder_add_string_value(builder, "output");
+
+  if (events & (I3IPC_EVENT_WORKSPACE & ~self->priv->subscriptions))
+    json_builder_add_string_value(builder, "workspace");
+
+  json_builder_end_array(builder);
+
+  JsonGenerator *generator = json_generator_new();
+  json_generator_set_root(generator, json_builder_get_root(builder));
+  gchar *payload = json_generator_to_data(generator, NULL);
+
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_SUBSCRIBE, payload, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonObject *json_reply = json_node_get_object(json_parser_get_root(self->priv->parser));
+
+  retval = g_new0(i3ipcCommandReply, 1);
+  retval->success = json_object_get_boolean_member(json_reply, "success");
+
+  g_object_unref(generator);
+  g_object_unref(builder);
+
+  if (retval->success)
+    self->priv->subscriptions |= events;
+
+  return retval;
 }
 
 /**
