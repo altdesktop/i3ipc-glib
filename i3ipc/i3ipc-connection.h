@@ -21,8 +21,10 @@
 #ifndef __I3IPC_CONNECTION_H__
 #define __I3IPC_CONNECTION_H__
 
-#include "i3ipc-con.h"
+#include <json-glib/json-glib.h>
 #include <glib-object.h>
+
+#include "i3ipc-con.h"
 
 #define I3IPC_MAGIC "i3-ipc"
 
@@ -263,7 +265,7 @@ GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err);
 
 GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err);
 
-gchar *i3ipc_connection_get_tree(i3ipcConnection *self);
+i3ipcCon *i3ipc_connection_get_tree(i3ipcConnection *self, GError **err);
 
 GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err);
 

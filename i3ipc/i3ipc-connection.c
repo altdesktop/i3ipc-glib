@@ -900,27 +900,47 @@ GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
 /**
  * i3ipc_connection_get_tree:
  * @self: An #i3ipcConnection
+ * @err: return location for a GError, or NULL
  *
  *  Gets the layout tree. i3 uses a tree as data structure which includes every
- *  container. The reply will be the JSON-encoded tree
+ *  container.
  *
- * Returns: a string reply
+ * Returns:(transfer none): the root container
  *
  */
-gchar *i3ipc_connection_get_tree(i3ipcConnection *self) {
-  GError *err = NULL;
+i3ipcCon *i3ipc_connection_get_tree(i3ipcConnection *self, GError **err) {
+  GError *tmp_error = NULL;
+  i3ipcCon *retval;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
-  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_TREE, "", &err);
-  g_assert_no_error(err);
 
-  ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &err);
-  g_assert_no_error(err);
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  reply[reply_length] = '\0';
+  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_TREE, "", &tmp_error);
 
-  return reply;
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  json_parser_load_from_data(self->priv->parser, reply, reply_length, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  retval = i3ipc_con_new(NULL, json_node_get_object(json_parser_get_root(self->priv->parser)));
+
+  return retval;
 }
 
 /**

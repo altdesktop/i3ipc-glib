@@ -48,7 +48,7 @@ if HAVE_INTROSPECTION
 introspection_sources = $(libi3ipc_1_0_la_SOURCES)
 
 i3ipc-1.0.gir: libi3ipc-1.0.la
-i3ipc_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0
+i3ipc_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0 Json-1.0
 i3ipc_1_0_gir_CFLAGS = $(AM_CPPFLAGS)
 i3ipc_1_0_gir_PACKAGES =
 i3ipc_1_0_gir_LIBS = libi3ipc-1.0.la

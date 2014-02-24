@@ -22,6 +22,7 @@
 #define __I3IPC_CON_H__
 
 #include <glib-object.h>
+#include <json-glib/json-glib.h>
 
 /**
   * SECTION: i3ipc-con
@@ -72,17 +73,6 @@ struct _i3ipcCon
   GObject parent_instance;
 
   /* instance members */
-  gint id;
-  gchar *name;
-  gchar *border;
-  gint current_border_width;
-  gchar *layout;
-  gchar *orientation;
-  gfloat percent;
-  gint window;
-  gboolean urgent;
-  gboolean focused;
-
   i3ipcConPrivate *priv;
 };
 
@@ -96,8 +86,10 @@ struct _i3ipcConClass
 /* used by I3IPC_TYPE_CON */
 GType i3ipc_con_get_type(void);
 
-i3ipcCon *i3ipc_con_new(void);
+i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data);
 
 /* Method definitions */
+
+GSList *i3ipc_con_get_nodes(i3ipcCon *self);
 
 #endif
