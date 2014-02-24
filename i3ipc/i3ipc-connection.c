@@ -1042,7 +1042,7 @@ GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err
  *
  * Gets the configuration of the workspace bar with the given ID.
  *
- * Return value:(transfer none) the bar config reply
+ * Return value:(transfer none): the bar config reply
  *
  */
 i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err) {
@@ -1124,7 +1124,7 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gcha
  * Gets the version of i3. The reply will be a boxed structure with the major,
  * minor, patch and human-readable version.
  *
- * Return value: (transfer none) an #i3ipcVersionReply
+ * Return value:(transfer none): an #i3ipcVersionReply
  */
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err) {
   GError *tmp_error = NULL;
