@@ -42,11 +42,13 @@
 #define I3IPC_IS_CONNECTION_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), I3IPC_TYPE_CONNECTION))
 #define I3IPC_CONNECTION_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), I3IPC_TYPE_CONNECTION, i3ipcConnectionClass))
 
+#define I3IPC_TYPE_COMMAND_REPLY          (i3ipc_command_reply_get_type ())
 #define I3IPC_TYPE_VERSION_REPLY          (i3ipc_version_reply_get_type ())
 #define I3IPC_TYPE_BAR_CONFIG_REPLY       (i3ipc_bar_config_reply_get_type ())
 #define I3IPC_TYPE_OUTPUT_REPLY           (i3ipc_output_reply_get_type ())
 #define I3IPC_TYPE_WORKSPACE_REPLY        (i3ipc_workspace_reply_get_type ())
 
+typedef struct _i3ipcCommandReply            i3ipcCommandReply;
 typedef struct _i3ipcVersionReply            i3ipcVersionReply;
 typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
 typedef struct _i3ipcOutputReply             i3ipcOutputReply;
@@ -55,6 +57,26 @@ typedef struct _i3ipcWorkspaceReply          i3ipcWorkspaceReply;
 typedef struct _i3ipcConnection        i3ipcConnection;
 typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
 typedef struct _i3ipcConnectionPrivate i3ipcConnectionPrivate;
+
+/**
+ * i3ipcCommandReply:
+ * @success: whether or not the command succeeded
+ * @parse_error: whether or not this was a parse error
+ * @error: An error message
+ *
+ * The #i3ipcCommandReply is the primary structure for accessing the reply of
+ * an ipc command.
+ */
+struct _i3ipcCommandReply
+{
+  gboolean success;
+  gboolean parse_error;
+  gchar *error;
+};
+
+i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply);
+void i3ipc_command_reply_free(i3ipcCommandReply *reply);
+GType i3ipc_command_reply_get_type(void);
 
 /**
  * i3ipcVersionReply:
@@ -257,7 +279,7 @@ i3ipcConnection *i3ipc_connection_new(GError **err);
 
 gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err);
 
-gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command);
+i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err);
 
 void i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback);
 

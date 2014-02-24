@@ -76,6 +76,41 @@ static int find_signal_number(char *name) {
 static guint connection_signals[LAST_SIGNAL] = {0};
 
 /**
+ * i3ipc_command_reply_copy:
+ * @reply: a #i3ipcCommandReply struct
+ *
+ * Creates a dynamically allocated i3ipc command reply as a copy of @reply.
+ */
+i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply) {
+  i3ipcCommandReply *retval;
+
+  g_return_val_if_fail(reply != NULL, NULL);
+
+  retval = g_slice_new(i3ipcCommandReply);
+  *retval = *reply;
+
+  return retval;
+}
+
+/**
+ * i3ipc_command_reply_free:
+ * @reply:(allow-none): a #i3ipcCommandReply
+ *
+ * Frees @reply. If @reply is %NULL, it simply returns.
+ */
+void i3ipc_command_reply_free(i3ipcCommandReply *reply) {
+  if (!reply)
+    return;
+
+  g_free(reply->error);
+
+  g_slice_free(i3ipcCommandReply, reply);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcCommandReply, i3ipc_command_reply,
+    i3ipc_command_reply_copy, i3ipc_command_reply_free);
+
+/**
  * i3ipc_version_reply_copy:
  * @version: a #i3ipcVersionReply struct
  *
@@ -682,18 +717,52 @@ static gboolean ipc_subscribe(i3ipcConnection *conn, char *event_name, GError **
   * i3ipc_connection_command:
   * @self: A #i3ipcConnection
   * @command: The command to send to i3
+  * @err:(allow-none): return location of a GError, or NULL
   *
   * Sends a command to the ipc synchronously.
   *
-  * Returns: TRUE on success, FALSE if an error occurred
+  * Returns:(transfer none): the #i3ipcCommandReply of the last command
   *
   */
-gboolean i3ipc_connection_command(i3ipcConnection *self, gchar *command) {
-  GError *err = NULL;
-  i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_COMMAND, command, &err);
-  g_assert_no_error(err);
+i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err) {
+  GError *tmp_error = NULL;
+  i3ipcCommandReply *retval;
 
-  return TRUE;
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_COMMAND, command, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  retval = g_new(i3ipcCommandReply, 1);
+
+  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  JsonArray *json_replies = json_node_get_array(json_parser_get_root(self->priv->parser));
+
+  guint reply_count = json_array_get_length(json_replies);
+
+  JsonObject *last_reply = json_array_get_object_element(json_replies, reply_count - 1);
+
+  retval->success = json_object_get_boolean_member(last_reply, "success");
+
+  retval->parse_error = (json_object_has_member(last_reply, "parse_error") ?
+      json_object_get_boolean_member(last_reply, "parse_error") :
+      FALSE);
+
+  retval->error = (json_object_has_member(last_reply, "error") ?
+      g_strdup(json_object_get_string_member(last_reply, "error")) :
+      NULL);
+
+  return retval;
 }
 
 /**
