@@ -2,7 +2,7 @@
 
 An improved dynamic i3 ipc.
 
-**Note:** i3-ipc is still in the design phase and is not yet ready for general use.
+**Note:** i3-ipc is in the early stages of development and many things are likely to change.
 
 ## About i3-ipc
 
@@ -11,12 +11,6 @@ i3's *interprocess communication* (or [ipc](http://i3wm.org/docs/ipc.html)) is t
 i3-ipc is a library to communicate with i3 via the ipc. The project is written in C and exposes bindings to various high-level programming languages such as Python, Perl, Lua, Ruby, and JavaScript. This is possible through the use of Gnome's [GObject Introspection](https://wiki.gnome.org/action/show/Projects/GObjectIntrospection?action=show&redirect=GObjectIntrospection) library and utilities.
 
 The goal of this project is to provide a basis for new projects in higher level languages for general scripting as well as an interface to i3 that fits well within a GLib-based stack.
-
-## Where we are now
-
-The project as it is now should be considered a proof-of-concept only. Many aspects of the api will change as new features are implemented.
-
-The object-oriented interface has yet to be designed. The implementation of the interface will be guided by the community. If you have an opinion, you can send me an email or get in touch with me on the [i3 irc channel](irc://irc.twice-irc.de/i3) (nick: TonyC).
 
 ## Installation
 
@@ -29,16 +23,12 @@ The following packages are required for building i3-ipc:
 * json-glib >= 0.16
 * gobject-introspection >= 1.38 (for language bindings)
 
-You can check if you have these packages with:
-
-    pkg-config --exists --print-errors xcb xcb-proto json-glib-1.0 gobject-2.0 gobject-introspection-1.0
-
-To use the Python bindings, set the following environment variables:
+To use the bindings, set the following environment variables:
 
     export GI_TYPELIB_PATH=/path/to/i3-ipc/i3ipc
     export LD_LIBRARY_PATH=/path/to/i3-ipc/i3ipc/.libs:$LD_LIBRARY_PATH
 
-This should be sufficient for creating a development environment for working on the project. I'm not completely confident in the build system yet, so build problems may be considered bugs. The library has been tested to build correctly on ArchLinux when the required packages are installed.
+This should be sufficient for creating a development environment for working on the project.
 
 ## Example
 
@@ -54,31 +44,38 @@ from gi.repository.GLib import MainLoop
 # to events.
 ipc = i3ipc.Connection.new()
 
-# Query the ipc for outputs. For now, the result is a list that represents the
-# parsed reply of a command like `i3-msg -t get_outputs`.
+# Query the ipc for outputs. The result is a list that represents the parsed
+# reply of a command like `i3-msg -t get_outputs`.
 outputs = ipc.get_outputs()
 
-print('Got outputs:')
-print(outputs)
+print('Active outputs:')
+
+for output in filter(lambda o: o.active, outputs):
+    print(output.name)
 
 # Send a command to be executed synchronously.
 ipc.command('focus left')
 
 # Define a callback to be called when you switch workspaces.
 def on_workspace(self, e):
-    # The first parameter is the connection to the ipc and the second is a dict
-    # containing the data of the event sent from i3.
-    print('Got workspace data:')
-    print(e)
+    # The first parameter is the connection to the ipc and the second is an object
+    # with the data of the event sent from i3.
+    if (e.current):
+        print('Windows on this workspace:')
+        for w in e.current.get_nodes():
+            print(w.get_property('name'))
 
 # Subscribe to the workspace event
-ipc.on('workspace', on_workspace)
+ipc.subscribe(i3ipc.Event.WORKSPACE)
+ipc.connect('workspace', on_workspace)
 
 # Start the main loop and wait for events to come in.
 main = MainLoop()
 main.run()
 main.unref()
 ```
+
+The library exposes the same API to many other scripting languages as well.
 
 ## Contributing
 
@@ -88,19 +85,13 @@ Development happens on Github. You can help by reporting bugs, making feature re
 
 Here is a list of all the tasks that need to be done before releasing version 0.0.1 to the public. You can pick something from this list and work on it by sending me an email or making an issue so we can coordinate.
 
-- [X] Commands
-- [X] Subscriptions
 - [X] Queries
-- [ ] Object oriented interface
-- [ ] WORKSPACES reply
-- [ ] OUTPUTS reply
-- [ ] TREE reply
-- [X] MARKS reply
-- [X] BAR_CONFIG reply
-- [X] VERSION reply
-- [X] mode event
-- [X] window event
-- [ ] error handling
+- [X] Events
+- [X] Subscriptions
+- [ ] Async commands
+- [ ] Container helper functions
+- [ ] Python wrapper for scripting
+- [ ] Perl, JavaScript, Ruby, Lua wrappers
 
 You can also help by fixing memory leaks, writing documentation, starring the repository, telling your friends, or giving to starving children in Uganda.
 
