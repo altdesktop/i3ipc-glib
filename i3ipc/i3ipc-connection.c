@@ -258,6 +258,48 @@ G_DEFINE_BOXED_TYPE(i3ipcWorkspaceReply, i3ipc_workspace_reply,
     i3ipc_workspace_reply_copy, i3ipc_workspace_reply_free)
 
 /**
+ * i3ipc_workspace_event_copy:
+ * @event: a #i3ipcWorkspaceEvent
+ *
+ * Creates a dynamically allocated i3ipc workspace event data container as a copy
+ * of @event.
+ */
+i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
+  i3ipcWorkspaceEvent *retval;
+
+  g_return_val_if_fail(event != NULL, NULL);
+
+  retval = g_slice_new(i3ipcWorkspaceEvent);
+  *retval = *event;
+
+  return retval;
+}
+
+/**
+ * i3ipc_workspace_event_free:
+ * @event:(allow-none): a #i3ipcWorkspaceEvent
+ *
+ * Frees @event. If @event is %NULL, it simply returns.
+ */
+void i3ipc_workspace_event_free(i3ipcWorkspaceEvent *event) {
+  if (!event)
+    return;
+
+  g_free(event->change);
+
+  if (event->current)
+    g_object_unref(event->current);
+
+  if (event->old)
+    g_object_unref(event->old);
+
+  g_slice_free(i3ipcWorkspaceEvent, event);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcWorkspaceEvent, i3ipc_workspace_event,
+    i3ipc_workspace_event_copy, i3ipc_workspace_event_free)
+
+/**
  * i3ipc_generic_event_copy:
  * @event: a #i3ipcGenericEvent
  *
@@ -396,10 +438,10 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
+      g_cclosure_marshal_VOID__BOXED,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_VARIANT);                        /* n_params */
+      I3IPC_TYPE_WORKSPACE_EVENT);                        /* n_params */
 
   /**
    * i3ipcConnection::output:
@@ -664,8 +706,29 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   switch (1 << (reply_type & 0x7F))
   {
     case I3IPC_EVENT_WORKSPACE:
-      g_signal_emit(conn, connection_signals[WORKSPACE], 0, event_data);
-      break;
+      {
+        JsonParser *parser = json_parser_new();
+        json_parser_load_from_data(parser, reply, reply_length, &err);
+
+        if (err)
+          return TRUE;
+
+        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
+        i3ipcWorkspaceEvent *e = g_new0(i3ipcWorkspaceEvent, 1);
+
+        e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
+
+        if (json_object_has_member(json_reply, "current") && !json_object_get_null_member(json_reply, "current"))
+          e->current = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "current"));
+
+        if (json_object_has_member(json_reply, "old") && !json_object_get_null_member(json_reply, "old"))
+          e->old = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "old"));
+
+        g_object_unref(parser);
+
+        g_signal_emit(conn, connection_signals[WORKSPACE], 0, e);
+        break;
+      }
 
     case I3IPC_EVENT_OUTPUT:
       {

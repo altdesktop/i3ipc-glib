@@ -48,6 +48,7 @@
 #define I3IPC_TYPE_OUTPUT_REPLY           (i3ipc_output_reply_get_type ())
 #define I3IPC_TYPE_WORKSPACE_REPLY        (i3ipc_workspace_reply_get_type ())
 
+#define I3IPC_TYPE_WORKSPACE_EVENT        (i3ipc_workspace_event_get_type ())
 #define I3IPC_TYPE_GENERIC_EVENT          (i3ipc_generic_event_get_type ())
 #define I3IPC_TYPE_BARCONFIG_UPDATE_EVENT (i3ipc_barconfig_update_event_get_type ())
 
@@ -57,6 +58,7 @@ typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
 typedef struct _i3ipcOutputReply             i3ipcOutputReply;
 typedef struct _i3ipcWorkspaceReply          i3ipcWorkspaceReply;
 
+typedef struct _i3ipcWorkspaceEvent          i3ipcWorkspaceEvent;
 typedef struct _i3ipcGenericEvent            i3ipcGenericEvent;
 typedef struct _i3ipcBarconfigUpdateEvent    i3ipcBarconfigUpdateEvent;
 
@@ -186,6 +188,25 @@ struct _i3ipcWorkspaceReply
 i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace);
 void i3ipc_workspace_reply_free(i3ipcWorkspaceReply *workspace);
 GType i3ipc_workspace_reply_get_type(void);
+
+/**
+ * i3ipcWorkspaceEvent:
+ * @change: indicates the type of change ("focus", "init", "empty", "urgent")
+ * @current: when the change is "focus", the currently focused workspace
+ * @old: when the change is "focus", the previously focused workspace
+ *
+ * The #i3ipcWorkspaceEvent contains data about a workspace event.
+ */
+struct _i3ipcWorkspaceEvent
+{
+  gchar *change;
+  i3ipcCon *current;
+  i3ipcCon *old;
+};
+
+i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event);
+void i3ipc_workspace_event_free(i3ipcWorkspaceEvent *event);
+GType i3ipc_workspace_event_get_type(void);
 
 /**
  * i3ipcGenericEvent:
