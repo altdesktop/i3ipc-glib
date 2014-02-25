@@ -50,6 +50,7 @@
 
 #define I3IPC_TYPE_WORKSPACE_EVENT        (i3ipc_workspace_event_get_type ())
 #define I3IPC_TYPE_GENERIC_EVENT          (i3ipc_generic_event_get_type ())
+#define I3IPC_TYPE_WINDOW_EVENT           (i3ipc_window_event_get_type ())
 #define I3IPC_TYPE_BARCONFIG_UPDATE_EVENT (i3ipc_barconfig_update_event_get_type ())
 
 typedef struct _i3ipcCommandReply            i3ipcCommandReply;
@@ -60,6 +61,7 @@ typedef struct _i3ipcWorkspaceReply          i3ipcWorkspaceReply;
 
 typedef struct _i3ipcWorkspaceEvent          i3ipcWorkspaceEvent;
 typedef struct _i3ipcGenericEvent            i3ipcGenericEvent;
+typedef struct _i3ipcWindowEvent             i3ipcWindowEvent;
 typedef struct _i3ipcBarconfigUpdateEvent    i3ipcBarconfigUpdateEvent;
 
 typedef struct _i3ipcConnection        i3ipcConnection;
@@ -222,6 +224,23 @@ struct _i3ipcGenericEvent
 i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event);
 void i3ipc_generic_event_free(i3ipcGenericEvent *event);
 GType i3ipc_generic_event_get_type(void);
+
+/**
+ * i3ipcWindowEvent:
+ * @change: details about what changed
+ * @container: The window's parent container
+ *
+ * A #i3ipcWindowEvent contains data about a window event.
+ */
+struct _i3ipcWindowEvent
+{
+  gchar *change;
+  i3ipcCon *container;
+};
+
+i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event);
+void i3ipc_window_event_free(i3ipcWindowEvent *event);
+GType i3ipc_window_event_get_type(void);
 
 /**
  * i3ipcBarconfigUpdateEvent:
