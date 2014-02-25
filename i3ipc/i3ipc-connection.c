@@ -727,24 +727,30 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   uint32_t reply_type;
   gchar *reply;
   GError *err = NULL;
+  JsonParser *parser;
+  JsonObject *json_reply;
 
   ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
 
   if (err) {
+    g_warning("could not get event reply\n");
     return TRUE;
   }
+
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, reply_length, &err);
+
+  if (err) {
+    g_warning("could not parse event reply json\n");
+    return TRUE;
+  }
+
+  json_reply = json_node_get_object(json_parser_get_root(parser));
 
   switch (1 << (reply_type & 0x7F))
   {
     case I3IPC_EVENT_WORKSPACE:
       {
-        JsonParser *parser = json_parser_new();
-        json_parser_load_from_data(parser, reply, reply_length, &err);
-
-        if (err)
-          return TRUE;
-
-        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
         i3ipcWorkspaceEvent *e = g_new0(i3ipcWorkspaceEvent, 1);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
@@ -755,26 +761,15 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
         if (json_object_has_member(json_reply, "old") && !json_object_get_null_member(json_reply, "old"))
           e->old = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "old"));
 
-        g_object_unref(parser);
-
         g_signal_emit(conn, connection_signals[WORKSPACE], 0, e);
         break;
       }
 
     case I3IPC_EVENT_OUTPUT:
       {
-        JsonParser *parser = json_parser_new();
-        json_parser_load_from_data(parser, reply, reply_length, &err);
-
-        if (err)
-          return TRUE;
-
-        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
         i3ipcGenericEvent *e = g_new(i3ipcGenericEvent, 1);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
-
-        g_object_unref(parser);
 
         g_signal_emit(conn, connection_signals[OUTPUT], 0, e);
         break;
@@ -782,18 +777,9 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     case I3IPC_EVENT_MODE:
       {
-        JsonParser *parser = json_parser_new();
-        json_parser_load_from_data(parser, reply, reply_length, &err);
-
-        if (err)
-          return TRUE;
-
-        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
         i3ipcGenericEvent *e = g_new(i3ipcGenericEvent, 1);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
-
-        g_object_unref(parser);
 
         g_signal_emit(conn, connection_signals[MODE], 0, e);
         break;
@@ -801,20 +787,10 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     case I3IPC_EVENT_WINDOW:
       {
-        JsonParser *parser = json_parser_new();
-        json_parser_load_from_data(parser, reply, reply_length, &err);
-
-        if (err)
-          return TRUE;
-
-        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
         i3ipcWorkspaceEvent *e = g_new0(i3ipcWorkspaceEvent, 1);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
-
         e->current = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "container"));
-
-        g_object_unref(parser);
 
         g_signal_emit(conn, connection_signals[WINDOW], 0, e);
         break;
@@ -822,20 +798,11 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     case I3IPC_EVENT_BARCONFIG_UPDATE:
       {
-        JsonParser *parser = json_parser_new();
-        json_parser_load_from_data(parser, reply, reply_length, &err);
-
-        if (err)
-          return TRUE;
-
-        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
         i3ipcBarconfigUpdateEvent *e = g_new(i3ipcBarconfigUpdateEvent, 1);
 
         e->id = g_strdup(json_object_get_string_member(json_reply, "id"));
         e->hidden_state = g_strdup(json_object_get_string_member(json_reply, "hidden_state"));
         e->mode = g_strdup(json_object_get_string_member(json_reply, "mode"));
-
-        g_object_unref(parser);
 
         g_signal_emit(conn, connection_signals[BARCONFIG_UPDATE], 0, e);
         break;
@@ -845,6 +812,8 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
       g_warning("got unknown event\n");
       break;
   }
+
+  g_object_unref(parser);
 
   return TRUE;
 }
