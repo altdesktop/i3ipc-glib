@@ -48,6 +48,7 @@
 #define I3IPC_TYPE_OUTPUT_REPLY           (i3ipc_output_reply_get_type ())
 #define I3IPC_TYPE_WORKSPACE_REPLY        (i3ipc_workspace_reply_get_type ())
 
+#define I3IPC_TYPE_GENERIC_EVENT          (i3ipc_generic_event_get_type ())
 #define I3IPC_TYPE_BARCONFIG_UPDATE_EVENT (i3ipc_barconfig_update_event_get_type ())
 
 typedef struct _i3ipcCommandReply            i3ipcCommandReply;
@@ -56,6 +57,7 @@ typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
 typedef struct _i3ipcOutputReply             i3ipcOutputReply;
 typedef struct _i3ipcWorkspaceReply          i3ipcWorkspaceReply;
 
+typedef struct _i3ipcGenericEvent            i3ipcGenericEvent;
 typedef struct _i3ipcBarconfigUpdateEvent    i3ipcBarconfigUpdateEvent;
 
 typedef struct _i3ipcConnection        i3ipcConnection;
@@ -184,6 +186,21 @@ struct _i3ipcWorkspaceReply
 i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace);
 void i3ipc_workspace_reply_free(i3ipcWorkspaceReply *workspace);
 GType i3ipc_workspace_reply_get_type(void);
+
+/**
+ * i3ipcGenericEvent:
+ * @change: details about what changed
+ *
+ * A #i3ipcGenericEvent contains a description of what has changed.
+ */
+struct _i3ipcGenericEvent
+{
+  gchar *change;
+};
+
+i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event);
+void i3ipc_generic_event_free(i3ipcGenericEvent *event);
+GType i3ipc_generic_event_get_type(void);
 
 /**
  * i3ipcBarconfigUpdateEvent:

@@ -258,6 +258,41 @@ G_DEFINE_BOXED_TYPE(i3ipcWorkspaceReply, i3ipc_workspace_reply,
     i3ipc_workspace_reply_copy, i3ipc_workspace_reply_free)
 
 /**
+ * i3ipc_generic_event_copy:
+ * @event: a #i3ipcGenericEvent
+ *
+ * Creates a dynamically allocated i3ipc generic event data container as a copy
+ * of @event.
+ */
+i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
+  i3ipcGenericEvent *retval;
+
+  g_return_val_if_fail(event != NULL, NULL);
+
+  retval = g_slice_new(i3ipcGenericEvent);
+  *retval = *event;
+
+  return retval;
+}
+
+/**
+ * i3ipc_generic_event_free:
+ * @event:(allow-none): a #i3ipcGenericEvent
+ *
+ * Frees @event. If @event is %NULL, it simply returns.
+ */
+void i3ipc_generic_event_free(i3ipcGenericEvent *event) {
+  if (!event)
+    return;
+
+  g_free(event->change);
+
+  g_slice_free(i3ipcGenericEvent, event);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcGenericEvent, i3ipc_generic_event,
+    i3ipc_generic_event_copy, i3ipc_generic_event_free);
+/**
  * i3ipc_barconfig_update_event_copy:
  * @event: a #i3ipcBarconfigUpdateEvent
  *
@@ -382,10 +417,10 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
+      g_cclosure_marshal_VOID__BOXED,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_VARIANT);                        /* n_params */
+      I3IPC_TYPE_GENERIC_EVENT);                        /* n_params */
 
   /**
    * i3ipcConnection::mode:
@@ -402,10 +437,10 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
+      g_cclosure_marshal_VOID__BOXED,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_VARIANT);                        /* n_params */
+      I3IPC_TYPE_GENERIC_EVENT);                        /* n_params */
 
   /**
    * i3ipcConnection::window:
@@ -633,12 +668,42 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
       break;
 
     case I3IPC_EVENT_OUTPUT:
-      g_signal_emit(conn, connection_signals[OUTPUT], 0, event_data);
-      break;
+      {
+        JsonParser *parser = json_parser_new();
+        json_parser_load_from_data(parser, reply, reply_length, &err);
+
+        if (err)
+          return TRUE;
+
+        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
+        i3ipcGenericEvent *e = g_new(i3ipcGenericEvent, 1);
+
+        e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
+
+        g_object_unref(parser);
+
+        g_signal_emit(conn, connection_signals[OUTPUT], 0, e);
+        break;
+      }
 
     case I3IPC_EVENT_MODE:
-      g_signal_emit(conn, connection_signals[MODE], 0, event_data);
-      break;
+      {
+        JsonParser *parser = json_parser_new();
+        json_parser_load_from_data(parser, reply, reply_length, &err);
+
+        if (err)
+          return TRUE;
+
+        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
+        i3ipcGenericEvent *e = g_new(i3ipcGenericEvent, 1);
+
+        e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
+
+        g_object_unref(parser);
+
+        g_signal_emit(conn, connection_signals[MODE], 0, e);
+        break;
+      }
 
     case I3IPC_EVENT_WINDOW:
       g_signal_emit(conn, connection_signals[WINDOW], 0, event_data);
