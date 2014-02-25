@@ -257,6 +257,42 @@ void i3ipc_workspace_reply_free(i3ipcWorkspaceReply *workspace) {
 G_DEFINE_BOXED_TYPE(i3ipcWorkspaceReply, i3ipc_workspace_reply,
     i3ipc_workspace_reply_copy, i3ipc_workspace_reply_free)
 
+/**
+ * i3ipc_barconfig_update_event_copy:
+ * @event: a #i3ipcBarconfigUpdateEvent
+ *
+ * Creates a dynamically allocated i3ipc barconfig update event data container
+ * as a copy of @event.
+ */
+i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdateEvent *event) {
+  i3ipcBarconfigUpdateEvent *retval;
+
+  g_return_val_if_fail(event != NULL, NULL);
+
+  retval = g_slice_new(i3ipcBarconfigUpdateEvent);
+  *retval = *event;
+
+  return retval;
+}
+
+/**
+ * i3ipc_barconfig_update_free:
+ * @event:(allow-none): a #i3ipcBarconfigUpdateEvent
+ *
+ * Frees @event. If @event is %NULL, it simply returns.
+ */
+void i3ipc_barconfig_update_event_free(i3ipcBarconfigUpdateEvent *event) {
+  if (!event)
+    return;
+
+  g_free(event->id);
+  g_free(event->hidden_state);
+  g_free(event->mode);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
+    i3ipc_barconfig_update_event_copy, i3ipc_barconfig_update_event_free);
+
 struct _i3ipcConnectionPrivate {
   JsonParser *parser;
   i3ipcEvent subscriptions;
@@ -408,10 +444,10 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
-      g_cclosure_marshal_VOID__VARIANT,       /* c_marshaller */
+      g_cclosure_marshal_VOID__BOXED,       /* c_marshaller */
       G_TYPE_NONE,                           /* return_type */
       1,
-      G_TYPE_VARIANT);                        /* n_params */
+      I3IPC_TYPE_BARCONFIG_UPDATE_EVENT);                        /* n_params */
 
 }
 
@@ -579,10 +615,16 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   GError *err = NULL;
 
   ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
-  g_assert_no_error(err);
+
+  if (err) {
+    return TRUE;
+  }
 
   event_data = json_gvariant_deserialize_data(reply, reply_length, NULL, &err);
-  g_assert_no_error(err);
+
+  if (err) {
+    return TRUE;
+  }
 
   switch (1 << (reply_type & 0x7F))
   {
@@ -603,8 +645,25 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
       break;
 
     case I3IPC_EVENT_BARCONFIG_UPDATE:
-      g_signal_emit(conn, connection_signals[BARCONFIG_UPDATE], 0, event_data);
-      break;
+      {
+        JsonParser *parser = json_parser_new();
+        json_parser_load_from_data(parser, reply, reply_length, &err);
+
+        if (err)
+          return TRUE;
+
+        JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
+        i3ipcBarconfigUpdateEvent *e = g_new(i3ipcBarconfigUpdateEvent, 1);
+
+        e->id = g_strdup(json_object_get_string_member(json_reply, "id"));
+        e->hidden_state = g_strdup(json_object_get_string_member(json_reply, "hidden_state"));
+        e->mode = g_strdup(json_object_get_string_member(json_reply, "mode"));
+
+        g_object_unref(parser);
+
+        g_signal_emit(conn, connection_signals[BARCONFIG_UPDATE], 0, e);
+        break;
+      }
 
     default:
       g_warning("got unknown event\n");

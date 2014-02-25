@@ -48,11 +48,15 @@
 #define I3IPC_TYPE_OUTPUT_REPLY           (i3ipc_output_reply_get_type ())
 #define I3IPC_TYPE_WORKSPACE_REPLY        (i3ipc_workspace_reply_get_type ())
 
+#define I3IPC_TYPE_BARCONFIG_UPDATE_EVENT (i3ipc_barconfig_update_event_get_type ())
+
 typedef struct _i3ipcCommandReply            i3ipcCommandReply;
 typedef struct _i3ipcVersionReply            i3ipcVersionReply;
 typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
 typedef struct _i3ipcOutputReply             i3ipcOutputReply;
 typedef struct _i3ipcWorkspaceReply          i3ipcWorkspaceReply;
+
+typedef struct _i3ipcBarconfigUpdateEvent    i3ipcBarconfigUpdateEvent;
 
 typedef struct _i3ipcConnection        i3ipcConnection;
 typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
@@ -180,6 +184,26 @@ struct _i3ipcWorkspaceReply
 i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace);
 void i3ipc_workspace_reply_free(i3ipcWorkspaceReply *workspace);
 GType i3ipc_workspace_reply_get_type(void);
+
+/**
+ * i3ipcBarconfigUpdateEvent:
+ * @id: specifies which bar instance the sent config update belongs
+ * @hidden_state: indicates the hidden_state of the i3bar instance
+ * @mode: corresponds to the current mode
+ *
+ * An #i3ipcBarconfigUpdateEvent reports options from the barconfig of the
+ * specified bar_id that were updated in i3.
+ */
+struct _i3ipcBarconfigUpdateEvent
+{
+  gchar *id;
+  gchar *hidden_state;
+  gchar *mode;
+};
+
+i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdateEvent *event);
+void i3ipc_barconfig_update_event_free(i3ipcBarconfigUpdateEvent *event);
+GType i3ipc_barconfig_update_event_get_type(void);
 
 /**
  * i3ipcMessageType:
