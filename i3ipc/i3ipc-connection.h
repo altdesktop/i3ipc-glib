@@ -354,7 +354,7 @@ struct _i3ipcConnectionClass
 /* used by I3IPC_TYPE_CONNECTION */
 GType i3ipc_connection_get_type(void);
 
-i3ipcConnection *i3ipc_connection_new(GError **err);
+i3ipcConnection *i3ipc_connection_new(gchar *socket_path, GError **err);
 
 /* Method definitions */
 

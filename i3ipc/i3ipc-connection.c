@@ -52,6 +52,7 @@ enum {
   PROP_0,
 
   PROP_SUBSCRIPTIONS,
+  PROP_SOCKET_PATH,
 
   N_PROPERTIES
 };
@@ -418,6 +419,7 @@ G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
 
 struct _i3ipcConnectionPrivate {
   i3ipcEvent subscriptions;
+  gchar *socket_path;
 };
 
 static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
@@ -425,10 +427,15 @@ static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
 G_DEFINE_TYPE_WITH_CODE(i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT, G_ADD_PRIVATE(i3ipcConnection) G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE, i3ipc_connection_initable_iface_init))
 
 static void i3ipc_connection_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec) {
-  //i3ipcConnnection *self = I3IPC_CONNECTION(object);
+  i3ipcConnection *self = I3IPC_CONNECTION(object);
 
   switch (property_id)
   {
+    case PROP_SOCKET_PATH:
+      g_free(self->priv->socket_path);
+      self->priv->socket_path = g_value_dup_string(value);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
       break;
@@ -442,6 +449,10 @@ static void i3ipc_connection_get_property(GObject *object, guint property_id, GV
   {
     case PROP_SUBSCRIPTIONS:
       g_value_set_flags(value, self->priv->subscriptions);
+      break;
+
+    case PROP_SOCKET_PATH:
+      g_value_set_string(value, self->priv->socket_path);
       break;
 
     default:
@@ -463,6 +474,13 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
         I3IPC_TYPE_EVENT,
         0,
         G_PARAM_READABLE);
+
+  obj_properties[PROP_SOCKET_PATH] =
+    g_param_spec_string("socket-path",
+        "Connection socket path",
+        "The path of the unix socket the connection is connected to",
+        "", /* default */
+        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 
   g_object_class_install_properties(gobject_class, N_PROPERTIES, obj_properties);
 
@@ -579,6 +597,7 @@ static void i3ipc_connection_init(i3ipcConnection *self) {
 
 /**
  * i3ipc_connection_new:
+ * @socket_path:(allow-none): the path of the socket to connect to
  * @err: return location for a GError, or NULL
  *
  * Allocates a new #i3ipcConnection
@@ -586,11 +605,11 @@ static void i3ipc_connection_init(i3ipcConnection *self) {
  * Returns:(transfer full): a new #i3ipcConnection
  *
  */
-i3ipcConnection *i3ipc_connection_new(GError **err) {
+i3ipcConnection *i3ipc_connection_new(gchar *socket_path, GError **err) {
   i3ipcConnection *conn;
   GError *tmp_error = NULL;
 
-  conn = g_initable_new(I3IPC_TYPE_CONNECTION, NULL, &tmp_error, NULL);
+  conn = g_initable_new(I3IPC_TYPE_CONNECTION, NULL, &tmp_error, "socket-path", g_strdup(socket_path), NULL);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
@@ -600,9 +619,10 @@ i3ipcConnection *i3ipc_connection_new(GError **err) {
   return conn;
 }
 
-static char *get_socket_path() {
+static gchar *i3ipc_connection_get_socket_path(i3ipcConnection *self, GError **err) {
+  GError *tmp_error = NULL;
   xcb_intern_atom_reply_t *atom_reply;
-  char *socket_path;
+  gchar *socket_path;
   char *atomname = "I3_SOCKET_PATH";
   size_t content_max_words = 256;
   xcb_screen_t *screen;
@@ -611,6 +631,10 @@ static char *get_socket_path() {
   xcb_get_property_cookie_t prop_cookie;
   xcb_get_property_reply_t *prop_reply;
 
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  if (self->priv->socket_path != NULL)
+    return self->priv->socket_path;
 
   xcb_connection_t *conn = xcb_connect(NULL, NULL);
 
@@ -622,8 +646,10 @@ static char *get_socket_path() {
   atom_reply = xcb_intern_atom_reply(conn, atom_cookie, NULL);
 
   if (atom_reply == NULL) {
+    /* TODO i3ipc custom errors */
     g_free(atom_reply);
-    g_error("atom reply is null\n");
+    tmp_error = g_error_new(G_IO_ERROR, G_IO_ERROR_FAILED, "socket path atom reply is null");
+    g_propagate_error(err, tmp_error);
     return NULL;
   }
 
@@ -639,9 +665,11 @@ static char *get_socket_path() {
   prop_reply = xcb_get_property_reply(conn, prop_cookie, NULL);
 
   if (prop_reply == NULL) {
-    g_error("property reply is null\n");
-    g_free(prop_reply);
+    /* TODO i3ipc custom errors */
     g_free(atom_reply);
+    g_free(prop_reply);
+    tmp_error = g_error_new(G_IO_ERROR, G_IO_ERROR_FAILED, "socket path property reply is null");
+    g_propagate_error(err, tmp_error);
     return NULL;
   }
 
@@ -660,12 +688,16 @@ static char *get_socket_path() {
 
 /*
  * Connects to the i3 IPC socket and returns the file descriptor for the
- * socket. die()s if anything goes wrong.
+ * socket.
  */
-static int get_file_descriptor(const char *socket_path) {
+static int get_file_descriptor(const char *socket_path, GError **err) {
+  GError *tmp_error = NULL;
+
   int sockfd = socket(AF_LOCAL, SOCK_STREAM, 0);
+
   if (sockfd == -1) {
-    g_error("Could not create socket");
+    tmp_error = g_error_new(G_IO_ERROR, g_io_error_from_errno(errno), "Could not connect to i3 (%s)\n", strerror(errno));
+    g_propagate_error(err, tmp_error);
     return -1;
   }
 
@@ -677,7 +709,8 @@ static int get_file_descriptor(const char *socket_path) {
   strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
 
   if (connect(sockfd, (const struct sockaddr*)&addr, sizeof(struct sockaddr_un)) < 0) {
-    g_error("Could not connect to i3 (%s)\n", strerror(errno));
+    tmp_error = g_error_new(G_IO_ERROR, g_io_error_from_errno(errno), "Could not connect to i3 (%s)\n", strerror(errno));
+    g_propagate_error(err, tmp_error);
     return -1;
   }
 
@@ -844,12 +877,29 @@ static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  char *socket_path = get_socket_path();
+  self->priv->socket_path = i3ipc_connection_get_socket_path(self, &tmp_error);
 
-  int cmd_fd = get_file_descriptor(socket_path);
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return FALSE;
+  }
+
+  int cmd_fd = get_file_descriptor(self->priv->socket_path, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return FALSE;
+  }
+
   self->cmd_channel = g_io_channel_unix_new(cmd_fd);
 
-  int sub_fd = get_file_descriptor(socket_path);
+  int sub_fd = get_file_descriptor(self->priv->socket_path, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return FALSE;
+  }
+
   self->sub_channel = g_io_channel_unix_new(sub_fd);
 
   g_io_channel_set_encoding(self->cmd_channel, NULL, &tmp_error);
@@ -867,8 +917,6 @@ static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable
   }
 
   g_io_add_watch(self->sub_channel, G_IO_IN, (GIOFunc)ipc_on_data, self);
-
-  free(socket_path);
 
   return TRUE;
 }
