@@ -177,7 +177,7 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
 static void i3ipc_con_dispose(GObject *gobject) {
   i3ipcCon *self = I3IPC_CON(gobject);
 
-  g_clear_object(&self->priv->parent);
+  self->priv->parent = NULL;
 
   G_OBJECT_CLASS(i3ipc_con_parent_class)->dispose(gobject);
 }
@@ -189,7 +189,10 @@ static void i3ipc_con_finalize(GObject *gobject) {
   g_free(self->priv->orientation);
   g_free(self->priv->name);
   g_free(self->priv->border);
-  g_slist_free(self->priv->nodes);
+  i3ipc_rect_free(self->priv->rect);
+
+  if (self->priv->nodes)
+    g_slist_free_full(self->priv->nodes, g_object_unref);
 }
 
 static void i3ipc_con_class_init(i3ipcConClass *klass) {
@@ -307,6 +310,7 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
 
 static void i3ipc_con_init(i3ipcCon *self) {
   self->priv = i3ipc_con_get_instance_private(self);
+  self->priv->rect = g_new0(i3ipcRect, 1);
 }
 
 static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode *element_node, gpointer user_data) {
@@ -350,7 +354,6 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
   con->priv->parent = parent;
 
   JsonObject *rect_data = json_object_get_object_member(data, "rect");
-  con->priv->rect = g_new(i3ipcRect, 1);
 
   con->priv->rect->x = json_object_get_int_member(rect_data, "x");
   con->priv->rect->y = json_object_get_int_member(rect_data, "y");

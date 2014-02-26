@@ -5,12 +5,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * i3-ipc is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with i3-ipc.  If not, see <http://www.gnu.org/licenses/>.
  *
@@ -179,6 +179,8 @@ void i3ipc_bar_config_reply_free(i3ipcBarConfigReply *config) {
   g_free(config->status_command);
   g_free(config->font);
   g_hash_table_destroy(config->colors);
+
+  g_slice_free(i3ipcBarConfigReply, config);
 }
 
 G_DEFINE_BOXED_TYPE(i3ipcBarConfigReply, i3ipc_bar_config_reply,
@@ -216,6 +218,8 @@ void i3ipc_output_reply_free(i3ipcOutputReply *output) {
   g_free(output->name);
   g_free(output->current_workspace);
   i3ipc_rect_free(output->rect);
+
+  g_slice_free(i3ipcOutputReply, output);
 }
 
 G_DEFINE_BOXED_TYPE(i3ipcOutputReply, i3ipc_output_reply,
@@ -252,6 +256,8 @@ void i3ipc_workspace_reply_free(i3ipcWorkspaceReply *workspace) {
   g_free(workspace->name);
   g_free(workspace->output);
   i3ipc_rect_free(workspace->rect);
+
+  g_slice_free(i3ipcWorkspaceReply, workspace);
 }
 
 G_DEFINE_BOXED_TYPE(i3ipcWorkspaceReply, i3ipc_workspace_reply,
@@ -403,13 +409,14 @@ void i3ipc_barconfig_update_event_free(i3ipcBarconfigUpdateEvent *event) {
   g_free(event->id);
   g_free(event->hidden_state);
   g_free(event->mode);
+
+  g_slice_free(i3ipcBarconfigUpdateEvent, event);
 }
 
 G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
     i3ipc_barconfig_update_event_copy, i3ipc_barconfig_update_event_free);
 
 struct _i3ipcConnectionPrivate {
-  JsonParser *parser;
   i3ipcEvent subscriptions;
 };
 
@@ -568,7 +575,6 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
 
 static void i3ipc_connection_init(i3ipcConnection *self) {
   self->priv = i3ipc_connection_get_instance_private (self);
-  self->priv->parser = json_parser_new();
 }
 
 /**
@@ -577,7 +583,7 @@ static void i3ipc_connection_init(i3ipcConnection *self) {
  *
  * Allocates a new #i3ipcConnection
  *
- * Returns: a new #i3ipcConnection
+ * Returns:(transfer full): a new #i3ipcConnection
  *
  */
 i3ipcConnection *i3ipc_connection_new(GError **err) {
@@ -595,27 +601,31 @@ i3ipcConnection *i3ipc_connection_new(GError **err) {
 }
 
 static char *get_socket_path() {
+  xcb_intern_atom_reply_t *atom_reply;
+  char *socket_path;
   char *atomname = "I3_SOCKET_PATH";
   size_t content_max_words = 256;
+  xcb_screen_t *screen;
+  xcb_intern_atom_cookie_t atom_cookie;
+  xcb_window_t root;
+  xcb_get_property_cookie_t prop_cookie;
+  xcb_get_property_reply_t *prop_reply;
+
 
   xcb_connection_t *conn = xcb_connect(NULL, NULL);
 
-  xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(conn)).data;
+  screen = xcb_setup_roots_iterator(xcb_get_setup(conn)).data;
 
-  xcb_window_t root = screen->root;
-
-  xcb_intern_atom_cookie_t atom_cookie;
-  xcb_intern_atom_reply_t *atom_reply;
+  root = screen->root;
 
   atom_cookie = xcb_intern_atom(conn, 0, strlen(atomname), atomname);
   atom_reply = xcb_intern_atom_reply(conn, atom_cookie, NULL);
+
   if (atom_reply == NULL) {
+    g_free(atom_reply);
     g_error("atom reply is null\n");
     return NULL;
   }
-
-  xcb_get_property_cookie_t prop_cookie;
-  xcb_get_property_reply_t *prop_reply;
 
   prop_cookie = xcb_get_property_unchecked(conn,
       false, // _delete
@@ -627,19 +637,22 @@ static char *get_socket_path() {
       );
 
   prop_reply = xcb_get_property_reply(conn, prop_cookie, NULL);
+
   if (prop_reply == NULL) {
     g_error("property reply is null\n");
-    free(atom_reply);
+    g_free(prop_reply);
+    g_free(atom_reply);
     return NULL;
   }
 
   int len = xcb_get_property_value_length(prop_reply);
-  char *socket_path = malloc(len);
+  socket_path = malloc(len);
+
   strncpy(socket_path, (char *)xcb_get_property_value(prop_reply), len);
   socket_path[len] = '\0';
 
-  free(atom_reply);
-  free(prop_reply);
+  g_free(atom_reply);
+  g_free(prop_reply);
   xcb_disconnect(conn);
 
   return socket_path;
@@ -731,17 +744,23 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   JsonObject *json_reply;
 
   ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
+  reply[reply_length] = '\0';
 
   if (err) {
     g_warning("could not get event reply\n");
+    g_error_free(err);
+    g_free(reply);
     return TRUE;
   }
 
   parser = json_parser_new();
-  json_parser_load_from_data(parser, reply, reply_length, &err);
+  json_parser_load_from_data(parser, reply, -1, &err);
 
   if (err) {
     g_warning("could not parse event reply json\n");
+    g_error_free(err);
+    g_free(reply);
+    g_object_unref(parser);
     return TRUE;
   }
 
@@ -814,6 +833,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   }
 
   g_object_unref(parser);
+  g_free(reply);
 
   return TRUE;
 }
@@ -901,7 +921,7 @@ static int ipc_send_message(GIOChannel *channel, const uint32_t message_size, co
   *
   * Sends a command to the ipc synchronously.
   *
-  * Returns: The reply of the ipc as a string
+  * Returns:(transfer full): The reply of the ipc as a string
   *
   */
 gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err) {
@@ -944,10 +964,11 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
   *
   * Sends a command to the ipc synchronously.
   *
-  * Returns:(transfer none): the #i3ipcCommandReply of the last command
+  * Returns:(transfer full): the #i3ipcCommandReply of the last command
   *
   */
 i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err) {
+  JsonParser *parser;
   GError *tmp_error = NULL;
   i3ipcCommandReply *retval;
 
@@ -956,20 +977,24 @@ i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *comman
   gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_COMMAND, command, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
   retval = g_new(i3ipcCommandReply, 1);
 
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonArray *json_replies = json_node_get_array(json_parser_get_root(self->priv->parser));
+  JsonArray *json_replies = json_node_get_array(json_parser_get_root(parser));
 
   guint reply_count = json_array_get_length(json_replies);
 
@@ -985,6 +1010,9 @@ i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *comman
       g_strdup(json_object_get_string_member(last_reply, "error")) :
       NULL);
 
+  g_object_unref(parser);
+  g_free(reply);
+
   return retval;
 }
 
@@ -996,10 +1024,15 @@ i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *comman
   *
   * Subscribes to the events given by the flags
   *
-  * Returns:(transfer none): The ipc reply
+  * Returns:(transfer full): The ipc reply
   *
   */
 i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err) {
+  JsonParser *parser;
+  JsonGenerator *generator;
+  JsonBuilder *builder;
+  gchar *reply;
+  gchar *payload;
   GError *tmp_error = NULL;
   i3ipcCommandReply *retval;
 
@@ -1010,7 +1043,7 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
     return retval;
   }
 
-  JsonBuilder *builder = json_builder_new();
+  builder = json_builder_new();
   json_builder_begin_array(builder);
 
   if (events & (I3IPC_EVENT_WINDOW & ~self->priv->subscriptions))
@@ -1030,31 +1063,44 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
 
   json_builder_end_array(builder);
 
-  JsonGenerator *generator = json_generator_new();
+  generator = json_generator_new();
   json_generator_set_root(generator, json_builder_get_root(builder));
-  gchar *payload = json_generator_to_data(generator, NULL);
+  payload = json_generator_to_data(generator, NULL);
 
-  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_SUBSCRIBE, payload, &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_SUBSCRIBE, payload, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
+    g_free(payload);
+    g_object_unref(generator);
+    g_object_unref(builder);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
+    g_free(payload);
+    g_object_unref(generator);
+    g_object_unref(builder);
+    g_object_unref(parser);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonObject *json_reply = json_node_get_object(json_parser_get_root(self->priv->parser));
+  JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
 
   retval = g_new0(i3ipcCommandReply, 1);
   retval->success = json_object_get_boolean_member(json_reply, "success");
 
-  g_object_unref(generator);
+  g_free(reply);
+  g_free(payload);
   g_object_unref(builder);
+  g_object_unref(generator);
+  g_object_unref(parser);
 
   if (retval->success)
     self->priv->subscriptions |= events;
@@ -1069,30 +1115,36 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
  *
  * Gets the current workspaces. The reply will be list workspaces
  *
- * Returns:(transfer none) (element-type i3ipcWorkspaceReply): a list of workspaces
+ * Returns:(transfer full) (element-type i3ipcWorkspaceReply): a list of workspaces
  *
  */
 GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
+  JsonParser *parser;
+  JsonReader *reader;
+  gchar *reply;
   GError *tmp_error = NULL;
   GSList *retval = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_WORKSPACES, "", &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_WORKSPACES, "", &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  reader = json_reader_new(json_parser_get_root(parser));
 
   int num_workspaces = json_reader_count_elements(reader);
 
@@ -1152,7 +1204,9 @@ GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
     retval = g_slist_prepend(retval, workspace);
   }
 
+  g_free(reply);
   g_object_unref(reader);
+  g_object_unref(parser);
 
   return retval;
 }
@@ -1164,30 +1218,37 @@ GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
  *
  * Gets the current outputs. The reply will be a list of outputs
  *
- * Returns:(transfer none) (element-type i3ipcOutputReply): a list of outputs
+ * Returns:(transfer full) (element-type i3ipcOutputReply): a list of outputs
  *
  */
 GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
+  JsonParser *parser;
+  JsonReader *reader;
+  gchar *reply;
   GError *tmp_error = NULL;
   GSList *retval = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_OUTPUTS, "", &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_OUTPUTS, "", &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  reader = json_reader_new(json_parser_get_root(parser));
 
   int num_outputs = json_reader_count_elements(reader);
 
@@ -1235,7 +1296,9 @@ GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
     retval = g_slist_prepend(retval, output);
   }
 
+  g_free(reply);
   g_object_unref(reader);
+  g_object_unref(parser);
 
   return retval;
 }
@@ -1247,40 +1310,39 @@ GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
  *  Gets the layout tree. i3 uses a tree as data structure which includes every
  *  container.
  *
- * Returns:(transfer none): the root container
+ * Returns:(transfer full): the root container
  *
  */
 i3ipcCon *i3ipc_connection_get_tree(i3ipcConnection *self, GError **err) {
+  JsonParser *parser;
   GError *tmp_error = NULL;
   i3ipcCon *retval;
-  uint32_t reply_length;
-  uint32_t reply_type;
   gchar *reply;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  ipc_send_message(self->cmd_channel, 1, I3IPC_MESSAGE_TYPE_GET_TREE, "", &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_TREE, "", &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  ipc_recv_message(self->cmd_channel, &reply_type, &reply_length, &reply, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  json_parser_load_from_data(self->priv->parser, reply, reply_length, &tmp_error);
+  retval = i3ipc_con_new(NULL, json_node_get_object(json_parser_get_root(parser)));
 
-  if (tmp_error != NULL) {
-    g_propagate_error(err, tmp_error);
-    return NULL;
-  }
-
-  retval = i3ipc_con_new(NULL, json_node_get_object(json_parser_get_root(self->priv->parser)));
+  g_object_unref(parser);
+  g_free(reply);
 
   return retval;
 }
@@ -1293,30 +1355,37 @@ i3ipcCon *i3ipc_connection_get_tree(i3ipcConnection *self, GError **err) {
  * Gets a list of marks (identifiers for containers to easily jump to them
  * later). The reply will be a list of window marks.
  *
- * Return value: (transfer none) (element-type utf8): a list of strings representing marks
+ * Return value: (transfer full) (element-type utf8): a list of strings representing marks
  *
  */
 GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
+  JsonParser *parser;
+  JsonReader *reader;
+  gchar *reply;
   GError *tmp_error = NULL;
   GSList *retval = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_MARKS, "", &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_MARKS, "", &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  reader = json_reader_new(json_parser_get_root(parser));
 
   int num_elements = json_reader_count_elements(reader);
 
@@ -1326,7 +1395,9 @@ GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
     json_reader_end_element(reader);
   }
 
+  g_free(reply);
   g_object_unref(reader);
+  g_object_unref(parser);
 
   return retval;
 }
@@ -1338,30 +1409,37 @@ GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
  *
  * Gets a list of all configured bar ids.
  *
- * Return value:(transfer none) (element-type utf8): the configured bar ids
+ * Return value:(transfer full) (element-type utf8): the configured bar ids
  *
  */
 GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err) {
+  JsonParser *parser;
+  JsonReader *reader;
+  gchar *reply;
   GError *tmp_error = NULL;
   GSList *retval = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, "", &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, "", &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  reader = json_reader_new(json_parser_get_root(parser));
 
   int num_elements = json_reader_count_elements(reader);
 
@@ -1371,7 +1449,9 @@ GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err
     json_reader_end_element(reader);
   }
 
+  g_free(reply);
   g_object_unref(reader);
+  g_object_unref(parser);
 
   return retval;
 }
@@ -1384,17 +1464,22 @@ GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err
  *
  * Gets the configuration of the workspace bar with the given ID.
  *
- * Return value:(transfer none): the bar config reply
+ * Return value:(transfer full): the bar config reply
  *
  */
 i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err) {
+  JsonParser *parser;
+  JsonReader *reader;
+  gchar *reply;
+  gchar **colors_list;
   GError *tmp_error = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG, bar_id, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
@@ -1402,14 +1487,17 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gcha
   i3ipcBarConfigReply *retval = g_new(i3ipcBarConfigReply, 1);
   retval->colors = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  reader = json_reader_new(json_parser_get_root(parser));
   json_reader_read_member(reader, "id");
   retval->id = g_strdup(json_reader_get_string_value(reader));
   json_reader_end_member(reader);
@@ -1445,7 +1533,7 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gcha
   json_reader_read_member(reader, "colors");
 
   int num_colors = json_reader_count_members(reader);
-  gchar **colors_list = json_reader_list_members(reader);
+  colors_list = json_reader_list_members(reader);
 
   for (int i = 0; i < num_colors; i += 1) {
       json_reader_read_member(reader, colors_list[i]);
@@ -1453,7 +1541,10 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gcha
       json_reader_end_member(reader);
   }
 
+  g_strfreev(colors_list);
   g_object_unref(reader);
+  g_object_unref(parser);
+  g_free(reply);
 
   return retval;
 }
@@ -1466,29 +1557,37 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gcha
  * Gets the version of i3. The reply will be a boxed structure with the major,
  * minor, patch and human-readable version.
  *
- * Return value:(transfer none): an #i3ipcVersionReply
+ * Return value:(transfer full): an #i3ipcVersionReply
  */
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err) {
+  JsonParser *parser;
+  JsonReader *reader;
+  gchar *reply;
   GError *tmp_error = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
-  gchar *reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_VERSION, "", &tmp_error);
+  reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_VERSION, "", &tmp_error);
 
   if (tmp_error != NULL) {
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
   i3ipcVersionReply *retval = g_new(i3ipcVersionReply, 1);
-  json_parser_load_from_data(self->priv->parser, reply, -1, &tmp_error);
+
+  parser = json_parser_new();
+  json_parser_load_from_data(parser, reply, -1, &tmp_error);
 
   if (tmp_error != NULL) {
+    g_object_unref(parser);
+    g_free(reply);
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  JsonReader *reader = json_reader_new(json_parser_get_root(self->priv->parser));
+  reader = json_reader_new(json_parser_get_root(parser));
   json_reader_read_member(reader, "major");
   retval->major = json_reader_get_int_value(reader);
   json_reader_end_member(reader);
@@ -1506,6 +1605,8 @@ i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **
   json_reader_end_member(reader);
 
   g_object_unref(reader);
+  g_object_unref(parser);
+  g_free(reply);
 
   return retval;
 }
