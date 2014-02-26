@@ -80,7 +80,7 @@ i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply) {
 
   g_return_val_if_fail(reply != NULL, NULL);
 
-  retval = g_slice_new(i3ipcCommandReply);
+  retval = g_slice_new0(i3ipcCommandReply);
   *retval = *reply;
 
   return retval;
@@ -121,7 +121,7 @@ i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version) {
 
   g_return_val_if_fail(version != NULL, NULL);
 
-  retval = g_slice_new(i3ipcVersionReply);
+  retval = g_slice_new0(i3ipcVersionReply);
   *retval = *version;
 
   return retval;
@@ -157,7 +157,7 @@ i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config) {
 
   g_return_val_if_fail(config != NULL, NULL);
 
-  retval = g_slice_new(i3ipcBarConfigReply);
+  retval = g_slice_new0(i3ipcBarConfigReply);
   *retval = *config;
 
   return retval;
@@ -199,7 +199,7 @@ i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output) {
 
   g_return_val_if_fail(output != NULL, NULL);
 
-  retval = g_slice_new(i3ipcOutputReply);
+  retval = g_slice_new0(i3ipcOutputReply);
   *retval = *output;
 
   return retval;
@@ -237,7 +237,7 @@ i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace) 
 
   g_return_val_if_fail(workspace != NULL, NULL);
 
-  retval = g_slice_new(i3ipcWorkspaceReply);
+  retval = g_slice_new0(i3ipcWorkspaceReply);
   *retval = *workspace;
 
   return retval;
@@ -275,7 +275,7 @@ i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
 
   g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new(i3ipcWorkspaceEvent);
+  retval = g_slice_new0(i3ipcWorkspaceEvent);
   *retval = *event;
 
   return retval;
@@ -317,7 +317,7 @@ i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
 
   g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new(i3ipcGenericEvent);
+  retval = g_slice_new0(i3ipcGenericEvent);
   *retval = *event;
 
   return retval;
@@ -353,7 +353,7 @@ i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event) {
 
   g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new(i3ipcWindowEvent);
+  retval = g_slice_new0(i3ipcWindowEvent);
   *retval = *event;
 
   return retval;
@@ -390,7 +390,7 @@ i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdat
 
   g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new(i3ipcBarconfigUpdateEvent);
+  retval = g_slice_new0(i3ipcBarconfigUpdateEvent);
   *retval = *event;
 
   return retval;

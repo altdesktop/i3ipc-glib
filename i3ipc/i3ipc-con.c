@@ -37,7 +37,7 @@ i3ipcRect *i3ipc_rect_copy(i3ipcRect *rect) {
 
   g_return_val_if_fail(rect != NULL, NULL);
 
-  retval = g_slice_new(i3ipcRect);
+  retval = g_slice_new0(i3ipcRect);
   *retval = *rect;
 
   return retval;
