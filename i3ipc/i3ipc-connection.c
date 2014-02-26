@@ -463,11 +463,31 @@ static void i3ipc_connection_get_property(GObject *object, guint property_id, GV
   }
 }
 
+static void i3ipc_connection_dispose(GObject *gobject) {
+  i3ipcConnection *self = I3IPC_CONNECTION(gobject);
+
+  g_io_channel_shutdown(self->priv->cmd_channel, TRUE, NULL);
+  g_io_channel_shutdown(self->priv->sub_channel, TRUE, NULL);
+
+  G_OBJECT_CLASS(i3ipc_connection_parent_class)->dispose(gobject);
+}
+
+static void i3ipc_connection_finalize(GObject *gobject) {
+  i3ipcConnection *self = I3IPC_CONNECTION(gobject);
+
+  g_free(self->priv->socket_path);
+
+  g_io_channel_unref(self->priv->cmd_channel);
+  g_io_channel_unref(self->priv->sub_channel);
+}
+
 static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
   GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
   gobject_class->set_property = i3ipc_connection_set_property;
   gobject_class->get_property = i3ipc_connection_get_property;
+  gobject_class->dispose = i3ipc_connection_dispose;
+  gobject_class->finalize = i3ipc_connection_finalize;
 
   obj_properties[PROP_SUBSCRIPTIONS] =
     g_param_spec_flags("subscriptions",
