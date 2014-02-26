@@ -420,6 +420,8 @@ G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
 struct _i3ipcConnectionPrivate {
   i3ipcEvent subscriptions;
   gchar *socket_path;
+  GIOChannel *cmd_channel;
+  GIOChannel *sub_channel;
 };
 
 static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
@@ -891,7 +893,7 @@ static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable
     return FALSE;
   }
 
-  self->cmd_channel = g_io_channel_unix_new(cmd_fd);
+  self->priv->cmd_channel = g_io_channel_unix_new(cmd_fd);
 
   int sub_fd = get_file_descriptor(self->priv->socket_path, &tmp_error);
 
@@ -900,23 +902,23 @@ static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable
     return FALSE;
   }
 
-  self->sub_channel = g_io_channel_unix_new(sub_fd);
+  self->priv->sub_channel = g_io_channel_unix_new(sub_fd);
 
-  g_io_channel_set_encoding(self->cmd_channel, NULL, &tmp_error);
-
-  if (tmp_error != NULL) {
-    g_propagate_error(err, tmp_error);
-    return FALSE;
-  }
-
-  g_io_channel_set_encoding(self->sub_channel, NULL, &tmp_error);
+  g_io_channel_set_encoding(self->priv->cmd_channel, NULL, &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
     return FALSE;
   }
 
-  g_io_add_watch(self->sub_channel, G_IO_IN, (GIOFunc)ipc_on_data, self);
+  g_io_channel_set_encoding(self->priv->sub_channel, NULL, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return FALSE;
+  }
+
+  g_io_add_watch(self->priv->sub_channel, G_IO_IN, (GIOFunc)ipc_on_data, self);
 
   return TRUE;
 }
@@ -983,7 +985,7 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
   if (payload == NULL)
     payload = "";
 
-  GIOChannel *channel = (message_type == I3IPC_MESSAGE_TYPE_SUBSCRIBE ? self->sub_channel : self->cmd_channel);
+  GIOChannel *channel = (message_type == I3IPC_MESSAGE_TYPE_SUBSCRIBE ? self->priv->sub_channel : self->priv->cmd_channel);
 
   ipc_send_message(channel, strlen(payload), message_type, payload, &tmp_error);
 

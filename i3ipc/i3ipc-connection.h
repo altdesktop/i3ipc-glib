@@ -338,9 +338,6 @@ struct _i3ipcConnection
 {
   GObject parent_instance;
 
-  GIOChannel *cmd_channel;
-  GIOChannel *sub_channel;
-
   i3ipcConnectionPrivate *priv;
 };
 
