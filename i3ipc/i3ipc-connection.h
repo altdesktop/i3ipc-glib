@@ -357,7 +357,7 @@ i3ipcConnection *i3ipc_connection_new(gchar *socket_path, GError **err);
 
 gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err);
 
-i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err);
+GSList *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err);
 
 i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err);
 

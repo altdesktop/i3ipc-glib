@@ -1014,13 +1014,14 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
   *
   * Sends a command to the ipc synchronously.
   *
-  * Returns:(transfer full): the #i3ipcCommandReply of the last command
+  * Returns:(transfer full) (element-type i3ipcCommandReply): a list of #i3ipcCommandReply structs for each
+  * command that was parsed
   *
   */
-i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err) {
+GSList *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err) {
   JsonParser *parser;
   GError *tmp_error = NULL;
-  i3ipcCommandReply *retval;
+  GSList *retval = NULL;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
 
@@ -1031,8 +1032,6 @@ i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *comman
     g_propagate_error(err, tmp_error);
     return NULL;
   }
-
-  retval = g_new(i3ipcCommandReply, 1);
 
   parser = json_parser_new();
   json_parser_load_from_data(parser, reply, -1, &tmp_error);
@@ -1048,17 +1047,23 @@ i3ipcCommandReply *i3ipc_connection_command(i3ipcConnection *self, gchar *comman
 
   guint reply_count = json_array_get_length(json_replies);
 
-  JsonObject *last_reply = json_array_get_object_element(json_replies, reply_count - 1);
+  for (int i = 0; i < reply_count; i += 1) {
+    JsonObject *json_reply = json_array_get_object_element(json_replies, i);
+    i3ipcCommandReply *cmd_reply = g_new(i3ipcCommandReply, 1);
 
-  retval->success = json_object_get_boolean_member(last_reply, "success");
+    cmd_reply->success = json_object_get_boolean_member(json_reply, "success");
 
-  retval->parse_error = (json_object_has_member(last_reply, "parse_error") ?
-      json_object_get_boolean_member(last_reply, "parse_error") :
-      FALSE);
+    cmd_reply->parse_error = (json_object_has_member(json_reply, "parse_error") ?
+        json_object_get_boolean_member(json_reply, "parse_error") :
+        FALSE);
 
-  retval->error = (json_object_has_member(last_reply, "error") ?
-      g_strdup(json_object_get_string_member(last_reply, "error")) :
-      NULL);
+    cmd_reply->error = (json_object_has_member(json_reply, "error") ?
+        g_strdup(json_object_get_string_member(json_reply, "error")) :
+        NULL);
+
+    retval = g_slist_append(retval, cmd_reply);
+  }
+
 
   g_object_unref(parser);
   g_free(reply);
