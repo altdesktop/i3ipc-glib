@@ -53,6 +53,7 @@ enum {
 
   PROP_SUBSCRIPTIONS,
   PROP_SOCKET_PATH,
+  PROP_CONNECTED,
 
   N_PROPERTIES
 };
@@ -420,6 +421,8 @@ G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
 struct _i3ipcConnectionPrivate {
   i3ipcEvent subscriptions;
   gchar *socket_path;
+  gboolean connected;
+  GError *init_error;
   GIOChannel *cmd_channel;
   GIOChannel *sub_channel;
 };
@@ -457,6 +460,10 @@ static void i3ipc_connection_get_property(GObject *object, guint property_id, GV
       g_value_set_string(value, self->priv->socket_path);
       break;
 
+    case PROP_CONNECTED:
+      g_value_set_boolean(value, self->priv->connected);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
       break;
@@ -466,8 +473,10 @@ static void i3ipc_connection_get_property(GObject *object, guint property_id, GV
 static void i3ipc_connection_dispose(GObject *gobject) {
   i3ipcConnection *self = I3IPC_CONNECTION(gobject);
 
-  g_io_channel_shutdown(self->priv->cmd_channel, TRUE, NULL);
-  g_io_channel_shutdown(self->priv->sub_channel, TRUE, NULL);
+  if (self->priv->connected) {
+    g_io_channel_shutdown(self->priv->cmd_channel, TRUE, NULL);
+    g_io_channel_shutdown(self->priv->sub_channel, TRUE, NULL);
+  }
 
   G_OBJECT_CLASS(i3ipc_connection_parent_class)->dispose(gobject);
 }
@@ -477,8 +486,23 @@ static void i3ipc_connection_finalize(GObject *gobject) {
 
   g_free(self->priv->socket_path);
 
-  g_io_channel_unref(self->priv->cmd_channel);
-  g_io_channel_unref(self->priv->sub_channel);
+  if (self->priv->init_error)
+    g_error_free(self->priv->init_error);
+
+  if (self->priv->connected) {
+    g_io_channel_unref(self->priv->cmd_channel);
+    g_io_channel_unref(self->priv->sub_channel);
+  }
+}
+
+static void i3ipc_connected_constructed(GObject *gobject) {
+  i3ipcConnection *self = I3IPC_CONNECTION(gobject);
+
+  self->priv->init_error = NULL;
+
+  g_initable_init((GInitable *)self, NULL, &self->priv->init_error);
+
+  G_OBJECT_CLASS(i3ipc_connection_parent_class)->constructed(gobject);
 }
 
 static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
@@ -488,6 +512,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
   gobject_class->get_property = i3ipc_connection_get_property;
   gobject_class->dispose = i3ipc_connection_dispose;
   gobject_class->finalize = i3ipc_connection_finalize;
+  gobject_class->constructed = i3ipc_connected_constructed;
 
   obj_properties[PROP_SUBSCRIPTIONS] =
     g_param_spec_flags("subscriptions",
@@ -501,8 +526,15 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
     g_param_spec_string("socket-path",
         "Connection socket path",
         "The path of the unix socket the connection is connected to",
-        "", /* default */
+        NULL, /* default */
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
+
+  obj_properties[PROP_CONNECTED] =
+    g_param_spec_boolean("connected",
+        "Connection connected",
+        "Whether or not a connection has been established to the ipc",
+        FALSE,
+        G_PARAM_READABLE);
 
   g_object_class_install_properties(gobject_class, N_PROPERTIES, obj_properties);
 
@@ -718,7 +750,7 @@ static int get_file_descriptor(const char *socket_path, GError **err) {
   int sockfd = socket(AF_LOCAL, SOCK_STREAM, 0);
 
   if (sockfd == -1) {
-    tmp_error = g_error_new(G_IO_ERROR, g_io_error_from_errno(errno), "Could not connect to i3 (%s)\n", strerror(errno));
+    tmp_error = g_error_new(G_IO_ERROR, g_io_error_from_errno(errno), "Could not create socket (%s)\n", strerror(errno));
     g_propagate_error(err, tmp_error);
     return -1;
   }
@@ -940,6 +972,8 @@ static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable
 
   g_io_add_watch(self->priv->sub_channel, G_IO_IN, (GIOFunc)ipc_on_data, self);
 
+  self->priv->connected = TRUE;
+
   return TRUE;
 }
 
@@ -1000,7 +1034,12 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
   uint32_t reply_type;
   gchar *reply;
 
-  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+  if (self->priv->init_error != NULL) {
+    g_propagate_error(err, self->priv->init_error);
+    return NULL;
+  }
+
+  g_return_val_if_fail(!self->priv->connected || err == NULL || *err == NULL, NULL);
 
   if (payload == NULL)
     payload = "";
