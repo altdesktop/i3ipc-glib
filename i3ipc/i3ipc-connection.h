@@ -361,6 +361,8 @@ GSList *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError *
 
 i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err);
 
+i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback, GError **err);
+
 GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err);
 
 GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err);

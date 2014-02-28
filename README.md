@@ -63,11 +63,10 @@ def on_workspace(self, e):
     if (e.current):
         print('Windows on this workspace:')
         for w in e.current.get_nodes():
-            print(w.get_property('name'))
+            print(w.props.name)
 
 # Subscribe to the workspace event
-ipc.subscribe(i3ipc.Event.WORKSPACE)
-ipc.connect('workspace', on_workspace)
+ipc.on('workspace', on_workspace)
 
 # Start the main loop and wait for events to come in.
 main = MainLoop()

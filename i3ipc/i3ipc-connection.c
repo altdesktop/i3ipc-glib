@@ -1184,6 +1184,50 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
 }
 
 /**
+ * i3ipc_connection_on:
+ * @self: an #i3ipcConnection
+ * @event: the event to subscribe to
+ * @callback:(scope call): the callback to run on the event
+ * @err:(allow-none): return location of a GError, or NULL
+ *
+ * A convenience function for bindings to subscribe an event with a callback
+ *
+ * Returns:(transfer none): the #i3ipcConnection for chaining
+ */
+i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback, GError **err) {
+  GError *tmp_error = NULL;
+  i3ipcEvent flags = 0;
+
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  if (strcmp(event, "workspace") == 0)
+    flags = I3IPC_EVENT_WORKSPACE;
+  else if (strcmp(event, "output") == 0)
+    flags = I3IPC_EVENT_OUTPUT;
+  else if (strcmp(event, "window") == 0)
+    flags = I3IPC_EVENT_WINDOW;
+  else if (strcmp(event, "mode") == 0)
+    flags = I3IPC_EVENT_MODE;
+  else if (strcmp(event, "barconfig_update") == 0)
+    flags = I3IPC_EVENT_BARCONFIG_UPDATE;
+
+  /* no such event */
+  if (flags == 0)
+    return self;
+
+  i3ipc_connection_subscribe(self, flags, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  g_signal_connect_closure(self, event, callback, TRUE);
+
+  return self;
+}
+
+/**
  * i3ipc_connection_get_workspaces:
  * @self: An #i3ipcConnection
  * @err: return location of a GError, or NULL
