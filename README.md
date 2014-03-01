@@ -14,21 +14,23 @@ The goal of this project is to provide a basis for new projects in higher level 
 
 ## Installation
 
-Installation requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system). Run `autogen.sh` to generate the files required for building and begin configuring the project. Then call `make` and the library will build in the `i3ipc` directory.
+Building the library currently requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system). Install the project with:
+
+```shell
+./autogen.sh && make
+sudo make install prefix=/usr
+```
 
 The following packages are required for building i3-ipc:
 
 * libxcb and xcb-proto (the requirements for i3 itself should be ok).
 * glib >= 2.38
 * json-glib >= 0.16
-* gobject-introspection >= 1.38 (for language bindings)
 
-To use the bindings, set the following environment variables:
+To use the Python bindings, you need the following packages:
 
-    export GI_TYPELIB_PATH=/path/to/i3-ipc/i3ipc
-    export LD_LIBRARY_PATH=/path/to/i3-ipc/i3ipc/.libs:$LD_LIBRARY_PATH
-
-This should be sufficient for creating a development environment for working on the project.
+* gobject-introspection >= 1.38
+* pygobject >= 3 (python2 is supported, but has a slightly different api right now)
 
 ## Example
 
@@ -38,15 +40,14 @@ Here is an example use of the library with the Python bindings.
 #!/usr/bin/env python3
 
 from gi.repository import i3ipc
-from gi.repository.GLib import MainLoop
 
 # Create the Connection object that can be used to send commands and subscribe
 # to events.
-ipc = i3ipc.Connection()
+conn = i3ipc.Connection()
 
 # Query the ipc for outputs. The result is a list that represents the parsed
 # reply of a command like `i3-msg -t get_outputs`.
-outputs = ipc.get_outputs()
+outputs = conn.get_outputs()
 
 print('Active outputs:')
 
@@ -54,7 +55,7 @@ for output in filter(lambda o: o.active, outputs):
     print(output.name)
 
 # Send a command to be executed synchronously.
-ipc.command('focus left')
+conn.command('focus left')
 
 # Define a callback to be called when you switch workspaces.
 def on_workspace(self, e):
@@ -62,19 +63,17 @@ def on_workspace(self, e):
     # with the data of the event sent from i3.
     if (e.current):
         print('Windows on this workspace:')
-        for w in e.current.get_nodes():
-            print(w.props.name)
+        for w in e.nodes:
+            print(w.name)
 
 # Subscribe to the workspace event
-ipc.on('workspace', on_workspace)
+conn.on('workspace', on_workspace)
 
 # Start the main loop and wait for events to come in.
-main = MainLoop()
-main.run()
-main.unref()
+conn.main()
 ```
 
-The library exposes the same API to many other scripting languages as well.
+The library exposes a similar API to other scripting languages as well.
 
 ## Contributing
 
@@ -82,15 +81,14 @@ Development happens on Github. You can help by reporting bugs, making feature re
 
 ### Task List
 
-Here is a list of all the tasks that need to be done before releasing version 0.0.1 to the public. You can pick something from this list and work on it by sending me an email or making an issue so we can coordinate.
+Here is a list of all the tasks that need to be done. You can pick something from this list and work on it by sending me an email or making an issue so we can coordinate.
 
 - [X] Queries
 - [X] Events
 - [X] Subscriptions
 - [ ] Async commands
 - [ ] Container helper functions
-- [ ] Python wrapper for scripting
-- [ ] Perl, JavaScript, Ruby, Lua wrappers
+- [ ] Language overrides
 
 You can also help by fixing memory leaks, writing documentation, starring the repository, telling your friends, or giving to starving children in Uganda.
 

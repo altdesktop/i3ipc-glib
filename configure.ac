@@ -43,6 +43,33 @@ LT_INIT
 
 GOBJECT_INTROSPECTION_CHECK([1.38.0])
 
-AC_CONFIG_FILES([Makefile i3ipc/Makefile])
+AM_PATH_PYTHON([3],, [:])
+
+AC_ARG_WITH([pygi_overrides_dir],
+            AC_HELP_STRING([--with-pygi-overrides-dir], [Path to pygobject overrides directory]))
+
+AC_MSG_CHECKING(for pygobject overrides directory)
+if test "x$with_pygi_overrides_dir" = "x" ; then
+        overrides_dir="`$PYTHON -c 'import gi; print(gi._overridesdir)' 2>/dev/null`"
+    # fallback if the previous failed
+    if test "x$overrides_dir" = "x" ; then
+        overrides_dir="${pyexecdir}/gi/overrides"
+    fi
+else
+        overrides_dir="$with_pygi_overrides_dir"
+fi
+
+AM_CONDITIONAL([HAS_PYGI], [test -d "$overrides_dir"])
+
+PYGI_OVERRIDES_DIR="$overrides_dir"
+AC_SUBST(PYGI_OVERRIDES_DIR)
+
+AM_COND_IF([HAS_PYGI], AC_MSG_RESULT($PYGI_OVERRIDES_DIR), AC_MSG_RESULT([No]))
+
+AC_CONFIG_FILES([
+                 Makefile
+                 i3ipc/Makefile
+                 overrides/Makefile
+                 ])
 
 AC_OUTPUT
