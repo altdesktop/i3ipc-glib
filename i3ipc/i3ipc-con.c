@@ -329,7 +329,7 @@ static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode 
  *
  * Allocates a new #i3ipcCon
  *
- * Returns:(transfer none): a new #i3ipcCon
+ * Returns:(transfer full): a new #i3ipcCon
  *
  */
 i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
@@ -375,4 +375,24 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
  */
 GSList *i3ipc_con_get_nodes(i3ipcCon *self) {
   return self->priv->nodes;
+}
+
+/**
+ * i3ipc_con_root:
+ * @self: an #i3ipcCon
+ *
+ * Returns:(transfer none): The root node of the tree.
+ */
+i3ipcCon *i3ipc_con_root(i3ipcCon *self) {
+  i3ipcCon *retval = self;
+  i3ipcCon *parent = self->priv->parent;
+
+  while (parent != NULL) {
+    parent = retval->priv->parent;
+
+    if (parent != NULL)
+      retval = parent;
+  }
+
+  return retval;
 }
