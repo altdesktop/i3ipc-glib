@@ -1,4 +1,5 @@
-/*
+/* vim:ts=2:sw=2:expandtab
+ *
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -25,12 +26,11 @@
 #include <json-glib/json-glib.h>
 
 /**
-  * SECTION: i3ipc-con
-  * @short_description: A representation of an i3 window container.
-  *
-  * #i3ipcCon is a class to model a node in the i3 window container tree.
-  *
-  */
+ * SECTION: i3ipc-con
+ * @short_description: A representation of an i3 window container.
+ *
+ * #i3ipcCon is a class to model a node in the i3 window container tree.
+ */
 
 #define I3IPC_TYPE_CON             (i3ipc_con_get_type ())
 #define I3IPC_CON(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), I3IPC_TYPE_CON, i3ipcCon))
@@ -39,13 +39,13 @@
 #define I3IPC_IS_CON_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), I3IPC_TYPE_CON))
 #define I3IPC_CON_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), I3IPC_TYPE_CON, i3ipcConClass))
 
-#define I3IPC_TYPE_RECT          (i3ipc_rect_get_type ())
+#define I3IPC_TYPE_RECT            (i3ipc_rect_get_type ())
 
-typedef struct _i3ipcRect       i3ipcRect;
+typedef struct _i3ipcRect          i3ipcRect;
 
-typedef struct _i3ipcCon        i3ipcCon;
-typedef struct _i3ipcConClass   i3ipcConClass;
-typedef struct _i3ipcConPrivate i3ipcConPrivate;
+typedef struct _i3ipcCon           i3ipcCon;
+typedef struct _i3ipcConClass      i3ipcConClass;
+typedef struct _i3ipcConPrivate    i3ipcConPrivate;
 
 /**
  * i3ipcRect:

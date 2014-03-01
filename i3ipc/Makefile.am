@@ -65,4 +65,3 @@ typelib_DATA = i3ipc-1.0.typelib
 
 CLEANFILES += $(gir_DATA) $(typelib_DATA) $(BUILT_SOURCES)
 endif
-

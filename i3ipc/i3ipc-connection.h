@@ -1,4 +1,5 @@
-/*
+/* vim:ts=2:sw=2:expandtab
+ *
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -29,11 +30,11 @@
 #define I3IPC_MAGIC "i3-ipc"
 
 /**
-  * SECTION: i3ipc-connection
-  * @short_description: A connection to the i3 IPC.
-  *
-  * The #i3ipcConnection is a class to send messages to i3.
-  */
+ * SECTION: i3ipc-connection
+ * @short_description: A connection to the i3 IPC.
+ *
+ * The #i3ipcConnection is a class to send messages to i3.
+ */
 
 #define I3IPC_TYPE_CONNECTION             (i3ipc_connection_get_type ())
 #define I3IPC_CONNECTION(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), I3IPC_TYPE_CONNECTION, i3ipcConnection))
@@ -53,20 +54,20 @@
 #define I3IPC_TYPE_WINDOW_EVENT           (i3ipc_window_event_get_type ())
 #define I3IPC_TYPE_BARCONFIG_UPDATE_EVENT (i3ipc_barconfig_update_event_get_type ())
 
-typedef struct _i3ipcCommandReply            i3ipcCommandReply;
-typedef struct _i3ipcVersionReply            i3ipcVersionReply;
-typedef struct _i3ipcBarConfigReply          i3ipcBarConfigReply;
-typedef struct _i3ipcOutputReply             i3ipcOutputReply;
-typedef struct _i3ipcWorkspaceReply          i3ipcWorkspaceReply;
+typedef struct _i3ipcCommandReply         i3ipcCommandReply;
+typedef struct _i3ipcVersionReply         i3ipcVersionReply;
+typedef struct _i3ipcBarConfigReply       i3ipcBarConfigReply;
+typedef struct _i3ipcOutputReply          i3ipcOutputReply;
+typedef struct _i3ipcWorkspaceReply       i3ipcWorkspaceReply;
 
-typedef struct _i3ipcWorkspaceEvent          i3ipcWorkspaceEvent;
-typedef struct _i3ipcGenericEvent            i3ipcGenericEvent;
-typedef struct _i3ipcWindowEvent             i3ipcWindowEvent;
-typedef struct _i3ipcBarconfigUpdateEvent    i3ipcBarconfigUpdateEvent;
+typedef struct _i3ipcWorkspaceEvent       i3ipcWorkspaceEvent;
+typedef struct _i3ipcGenericEvent         i3ipcGenericEvent;
+typedef struct _i3ipcWindowEvent          i3ipcWindowEvent;
+typedef struct _i3ipcBarconfigUpdateEvent i3ipcBarconfigUpdateEvent;
 
-typedef struct _i3ipcConnection        i3ipcConnection;
-typedef struct _i3ipcConnectionClass   i3ipcConnectionClass;
-typedef struct _i3ipcConnectionPrivate i3ipcConnectionPrivate;
+typedef struct _i3ipcConnection           i3ipcConnection;
+typedef struct _i3ipcConnectionClass      i3ipcConnectionClass;
+typedef struct _i3ipcConnectionPrivate    i3ipcConnectionPrivate;
 
 /**
  * i3ipcCommandReply:
@@ -149,7 +150,8 @@ GType i3ipc_bar_config_reply_get_type(void);
  * @current_workspace:
  * @rect:
  *
- * The #i3ipcOutputReply is the primary structure for accessing the reply of an ipc output command.
+ * The #i3ipcOutputReply is the primary structure for accessing the reply of an
+ * ipc output command.
  */
 struct _i3ipcOutputReply
 {

@@ -1,4 +1,5 @@
-/*
+/* vim:ts=2:sw=2:expandtab
+ *
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -30,7 +31,7 @@
  *
  * Creates a dynamically allocated i3ipc rect as a copy of @rect.
  *
- * Return value: a newly-allocated copy of @rect.
+ * Returns:(transfer full): a newly-allocated copy of @rect.
  */
 i3ipcRect *i3ipc_rect_copy(i3ipcRect *rect) {
   i3ipcRect *retval;
@@ -300,10 +301,10 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
    * This property is a list of the con's nodes.
    */
   obj_properties[PROP_NODES] =
-    g_param_spec_pointer("nodes",
-        "Con nodes",
-        "The con's nodes",
-        G_PARAM_READABLE);
+     g_param_spec_pointer("nodes",
+         "Con nodes",
+         "The con's nodes",
+         G_PARAM_READABLE);
 
   g_object_class_install_properties(gobject_class, N_PROPERTIES, obj_properties);
 }
@@ -330,7 +331,6 @@ static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode 
  * Allocates a new #i3ipcCon
  *
  * Returns:(transfer full): a new #i3ipcCon
- *
  */
 i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
   i3ipcCon *con;

@@ -40,4 +40,3 @@ $(glib_enum_c): $(glib_enum_h) $(srcdir)/$(enum_tmpl_c)
 	$(glib_enum_headers) > xgen-ec \
 	&& cp -f xgen-ec $(glib_enum_c) \
 	&& rm -f xgen-ec
-
