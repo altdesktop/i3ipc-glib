@@ -61,10 +61,10 @@ conn.command('focus left')
 def on_workspace(self, e):
     # The first parameter is the connection to the ipc and the second is an object
     # with the data of the event sent from i3.
-    if (e.current):
+    if e.current:
         print('Windows on this workspace:')
-        for w in e.nodes:
-            print(w.name)
+        for w in e.current.descendents():
+            print(w.props.name)
 
 # Subscribe to the workspace event
 conn.on('workspace', on_workspace)

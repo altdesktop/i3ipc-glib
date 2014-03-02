@@ -94,4 +94,6 @@ GList *i3ipc_con_get_nodes(i3ipcCon *self);
 
 i3ipcCon *i3ipc_con_root(i3ipcCon *self);
 
+GList *i3ipc_con_descendents(i3ipcCon *self);
+
 #endif

@@ -402,3 +402,36 @@ i3ipcCon *i3ipc_con_root(i3ipcCon *self) {
 
   return retval;
 }
+
+static void i3ipc_con_collect_descendents_func(gpointer data, gpointer user_data) {
+  i3ipcCon *con = I3IPC_CON(data);
+  GList *descendents = (GList *)user_data;
+
+  descendents = g_list_append(descendents, con);
+
+  if (descendents != NULL)
+    g_list_foreach(con->priv->nodes, i3ipc_con_collect_descendents_func, descendents);
+}
+
+/**
+ * i3ipc_con_descendents:
+ * @self: an #i3ipcCon
+ *
+ * Returns:(transfer container) (element-type i3ipcCon): a list of descendent nodes
+ */
+GList *i3ipc_con_descendents(i3ipcCon *self) {
+  GList *retval;
+
+  if (!self->priv->nodes)
+    return NULL;
+
+  /* the list has to have a first element for some reason. */
+  retval = g_list_alloc();
+
+  g_list_foreach(self->priv->nodes, i3ipc_con_collect_descendents_func, retval);
+
+  /* XXX: I hope this doesn't leak */
+  retval = g_list_remove_link(retval, g_list_first(retval));
+
+  return retval;
+}
