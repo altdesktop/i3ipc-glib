@@ -90,7 +90,7 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data);
 
 /* Method definitions */
 
-GSList *i3ipc_con_get_nodes(i3ipcCon *self);
+GList *i3ipc_con_get_nodes(i3ipcCon *self);
 
 i3ipcCon *i3ipc_con_root(i3ipcCon *self);
 

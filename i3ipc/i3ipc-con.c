@@ -73,7 +73,7 @@ struct _i3ipcConPrivate {
   gboolean focused;
 
   i3ipcRect *rect;
-  GSList *nodes;
+  GList *nodes;
   i3ipcCon *parent;
 };
 
@@ -193,7 +193,7 @@ static void i3ipc_con_finalize(GObject *gobject) {
   i3ipc_rect_free(self->priv->rect);
 
   if (self->priv->nodes)
-    g_slist_free_full(self->priv->nodes, g_object_unref);
+    g_list_free_full(self->priv->nodes, g_object_unref);
 }
 
 static void i3ipc_con_class_init(i3ipcConClass *klass) {
@@ -296,7 +296,7 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         G_PARAM_READABLE);
 
   /**
-   * i3ipcCon:nodes:(type GSList(i3ipcCon)):
+   * i3ipcCon:nodes:(type GList(i3ipcCon)):
    *
    * This property is a list of the con's nodes.
    */
@@ -320,7 +320,7 @@ static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode 
 
   i3ipcCon *con = i3ipc_con_new(parent, data);
 
-  parent->priv->nodes = g_slist_append(parent->priv->nodes, con);
+  parent->priv->nodes = g_list_append(parent->priv->nodes, con);
 }
 
 /**
@@ -373,7 +373,7 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
  *
  * Returns:(transfer none) (element-type i3ipcCon): A list of child nodes.
  */
-GSList *i3ipc_con_get_nodes(i3ipcCon *self) {
+GList *i3ipc_con_get_nodes(i3ipcCon *self) {
   return self->priv->nodes;
 }
 
