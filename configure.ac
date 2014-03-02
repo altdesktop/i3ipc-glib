@@ -69,6 +69,7 @@ AM_COND_IF([HAS_PYGI], AC_MSG_RESULT($PYGI_OVERRIDES_DIR), AC_MSG_RESULT([No]))
 AC_CONFIG_FILES([
                  Makefile
                  i3ipc-glib/Makefile
+                 i3ipc-glib/i3ipc-glib.pc
                  overrides/Makefile
                  ])
 

@@ -46,6 +46,15 @@ i3ipcinclude_DATA = \
 	$(top_srcdir)/i3ipc-glib/i3ipc-glib.h \
 	$(NULL)
 
+pcfiles = i3ipc-glib.pc
+
+i3ipc-glib-1.0.pc: i3ipc-glib.pc
+	$(AM_V_GEN)cp -f $< $@
+
+pkgconfig_DATA = $(pcfiles)
+pkgconfigdir = $(libdir)/pkgconfig
+CLEANFILES += $(pcfiles)
+
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = i3ipc_1_0_gir
 INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir) --warn-all
