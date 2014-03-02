@@ -7,7 +7,7 @@ m4_pattern_allow([AM_INIT_AUTOMAKE])
 
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([build/autotools])
-AC_CONFIG_SRCDIR([i3ipc])
+AC_CONFIG_SRCDIR([i3ipc/i3ipc-glib.h])
 AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.

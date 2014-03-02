@@ -39,6 +39,13 @@ lib_LTLIBRARIES += libi3ipc-1.0.la
 libi3ipc_1_0_la_LIBADD = $(xcb_LIBS) $(json_LIBS) $(gobject_LIBS) $(gio_LIBS)
 libi3ipc_1_0_la_SOURCES = $(source_c) $(source_h) $(source_h_private) $(BUILT_SOURCES)
 
+i3ipcincludedir = $(includedir)/i3ipc-glib
+i3ipcinclude_DATA = \
+	$(source_h) \
+	$(top_srcdir)/i3ipc/i3ipc-enum-types.h \
+	$(top_srcdir)/i3ipc/i3ipc-glib.h \
+	$(NULL)
+
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = i3ipc_1_0_gir
 INTROSPECTION_SCANNER_ARGS = --add-include-path=$(srcdir) --warn-all
@@ -55,7 +62,7 @@ i3ipc_1_0_gir_PACKAGES =
 i3ipc_1_0_gir_LIBS = libi3ipc-1.0.la
 i3ipc_1_0_gir_FILES = $(introspection_sources)
 i3ipc_1_0_gir_NAMESPACE = i3ipc
-i3ipc_1_0_gir_SCANNERFLAGS = --warn-all --pkg-export i3ipc-1.0
+i3ipc_1_0_gir_SCANNERFLAGS = --warn-all --pkg-export i3ipc-1.0 --c-include "i3ipc-glib/i3ipc-glib.h"
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = i3ipc-1.0.gir
