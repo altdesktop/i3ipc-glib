@@ -183,6 +183,11 @@ static void i3ipc_con_dispose(GObject *gobject) {
   G_OBJECT_CLASS(i3ipc_con_parent_class)->dispose(gobject);
 }
 
+static void i3ipc_con_list_free_func(gpointer data) {
+  if (data != NULL && I3IPC_IS_CON(data))
+    g_clear_object(&data);
+}
+
 static void i3ipc_con_finalize(GObject *gobject) {
   i3ipcCon *self = I3IPC_CON(gobject);
 
@@ -193,7 +198,7 @@ static void i3ipc_con_finalize(GObject *gobject) {
   i3ipc_rect_free(self->priv->rect);
 
   if (self->priv->nodes)
-    g_list_free_full(self->priv->nodes, g_object_unref);
+    g_list_free_full(self->priv->nodes, i3ipc_con_list_free_func);
 }
 
 static void i3ipc_con_class_init(i3ipcConClass *klass) {
@@ -311,7 +316,8 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
 
 static void i3ipc_con_init(i3ipcCon *self) {
   self->priv = i3ipc_con_get_instance_private(self);
-  self->priv->rect = g_new0(i3ipcRect, 1);
+  self->priv->rect = g_slice_new0(i3ipcRect);
+  self->priv->nodes = NULL;
 }
 
 static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode *element_node, gpointer user_data) {

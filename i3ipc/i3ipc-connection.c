@@ -297,13 +297,14 @@ void i3ipc_workspace_event_free(i3ipcWorkspaceEvent *event) {
 
   g_free(event->change);
 
-  if (event->current)
-    g_object_unref(event->current);
+  if (event->current && I3IPC_IS_CON(event->current))
+    g_clear_object(&event->current);
 
-  if (event->old)
-    g_object_unref(event->old);
+  if (event->old && I3IPC_IS_CON(event->old))
+    g_clear_object(&event->old);
 
   g_slice_free(i3ipcWorkspaceEvent, event);
+
 }
 
 G_DEFINE_BOXED_TYPE(i3ipcWorkspaceEvent, i3ipc_workspace_event,
@@ -378,7 +379,9 @@ void i3ipc_window_event_free(i3ipcWindowEvent *event) {
     return;
 
   g_free(event->change);
-  g_object_unref(event->container);
+
+  if (event->container && I3IPC_IS_CON(event->container))
+      g_clear_object(&event->container);
 
   g_slice_free(i3ipcWindowEvent, event);
 }
@@ -858,7 +861,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   {
     case I3IPC_EVENT_WORKSPACE:
       {
-        i3ipcWorkspaceEvent *e = g_new0(i3ipcWorkspaceEvent, 1);
+        i3ipcWorkspaceEvent *e = g_slice_new0(i3ipcWorkspaceEvent);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
 
@@ -874,7 +877,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     case I3IPC_EVENT_OUTPUT:
       {
-        i3ipcGenericEvent *e = g_new(i3ipcGenericEvent, 1);
+        i3ipcGenericEvent *e = g_slice_new0(i3ipcGenericEvent);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
 
@@ -884,7 +887,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     case I3IPC_EVENT_MODE:
       {
-        i3ipcGenericEvent *e = g_new(i3ipcGenericEvent, 1);
+        i3ipcGenericEvent *e = g_slice_new0(i3ipcGenericEvent);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
 
@@ -894,10 +897,12 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     case I3IPC_EVENT_WINDOW:
       {
-        i3ipcWorkspaceEvent *e = g_new0(i3ipcWorkspaceEvent, 1);
+        i3ipcWindowEvent *e = g_slice_new0(i3ipcWindowEvent);
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
-        e->current = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "container"));
+
+        if (json_object_has_member(json_reply, "container") && !json_object_get_null_member(json_reply, "container"))
+          e->container = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "container"));
 
         g_signal_emit(conn, connection_signals[WINDOW], 0, e);
         break;
@@ -905,7 +910,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     case I3IPC_EVENT_BARCONFIG_UPDATE:
       {
-        i3ipcBarconfigUpdateEvent *e = g_new(i3ipcBarconfigUpdateEvent, 1);
+        i3ipcBarconfigUpdateEvent *e = g_slice_new0(i3ipcBarconfigUpdateEvent);
 
         e->id = g_strdup(json_object_get_string_member(json_reply, "id"));
         e->hidden_state = g_strdup(json_object_get_string_member(json_reply, "hidden_state"));
@@ -930,7 +935,7 @@ static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable
   i3ipcConnection *self = I3IPC_CONNECTION(initable);
   GError *tmp_error = NULL;
 
-  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+  g_return_val_if_fail(err == NULL || *err == NULL, FALSE);
 
   self->priv->socket_path = i3ipc_connection_get_socket_path(self, &tmp_error);
 
@@ -981,7 +986,6 @@ static gboolean i3ipc_connection_initable_init(GInitable *initable, GCancellable
 static void i3ipc_connection_initable_iface_init (GInitableIface *iface) {
   iface->init = i3ipc_connection_initable_init;
 }
-
 
 /*
  * Sends a message to the ipc.
@@ -1107,7 +1111,7 @@ GSList *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError *
 
   for (int i = 0; i < reply_count; i += 1) {
     JsonObject *json_reply = json_array_get_object_element(json_replies, i);
-    i3ipcCommandReply *cmd_reply = g_new(i3ipcCommandReply, 1);
+    i3ipcCommandReply *cmd_reply = g_slice_new0(i3ipcCommandReply);
 
     cmd_reply->success = json_object_get_boolean_member(json_reply, "success");
 
@@ -1150,7 +1154,7 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
 
   if (!(events & ~self->priv->subscriptions)) {
     /* No new events */
-    retval = g_new0(i3ipcCommandReply, 1);
+    retval = g_slice_new0(i3ipcCommandReply);
     retval->success = TRUE;
     return retval;
   }
@@ -1205,7 +1209,7 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
 
   JsonObject *json_reply = json_node_get_object(json_parser_get_root(parser));
 
-  retval = g_new0(i3ipcCommandReply, 1);
+  retval = g_slice_new0(i3ipcCommandReply);
   retval->success = json_object_get_boolean_member(json_reply, "success");
 
   g_free(reply);
@@ -1224,7 +1228,7 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
  * i3ipc_connection_on:
  * @self: an #i3ipcConnection
  * @event: the event to subscribe to
- * @callback:(scope call): the callback to run on the event
+ * @callback:(scope notified): the callback to run on the event
  * @err:(allow-none): return location of a GError, or NULL
  *
  * A convenience function for bindings to subscribe an event with a callback
@@ -1233,9 +1237,13 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
  */
 i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback, GError **err) {
   GError *tmp_error = NULL;
+  i3ipcCommandReply *cmd_reply;
   i3ipcEvent flags = 0;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  g_closure_ref(callback);
+  g_closure_sink(callback);
 
   if (strcmp(event, "workspace") == 0)
     flags = I3IPC_EVENT_WORKSPACE;
@@ -1252,7 +1260,8 @@ i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosu
   if (flags == 0)
     return self;
 
-  i3ipc_connection_subscribe(self, flags, &tmp_error);
+  cmd_reply = i3ipc_connection_subscribe(self, flags, &tmp_error);
+  i3ipc_command_reply_free(cmd_reply);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
@@ -1304,8 +1313,8 @@ GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
   int num_workspaces = json_reader_count_elements(reader);
 
   for (int i = 0; i < num_workspaces; i += 1) {
-    i3ipcWorkspaceReply *workspace = g_new(i3ipcWorkspaceReply, 1);
-    workspace->rect = g_new(i3ipcRect, 1);
+    i3ipcWorkspaceReply *workspace = g_slice_new0(i3ipcWorkspaceReply);
+    workspace->rect = g_slice_new0(i3ipcRect);
 
     json_reader_read_element(reader, i);
 
@@ -1407,8 +1416,8 @@ GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
   int num_outputs = json_reader_count_elements(reader);
 
   for (int i = 0; i < num_outputs; i += 1) {
-    i3ipcOutputReply *output = g_new(i3ipcOutputReply, 1);
-    output->rect = g_new(i3ipcRect, 1);
+    i3ipcOutputReply *output = g_slice_new(i3ipcOutputReply);
+    output->rect = g_slice_new0(i3ipcRect);
 
     json_reader_read_element(reader, i);
 
@@ -1634,7 +1643,7 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gcha
     return NULL;
   }
 
-  i3ipcBarConfigReply *retval = g_new(i3ipcBarConfigReply, 1);
+  i3ipcBarConfigReply *retval = g_slice_new0(i3ipcBarConfigReply);
   retval->colors = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
   parser = json_parser_new();
@@ -1725,7 +1734,7 @@ i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **
     return NULL;
   }
 
-  i3ipcVersionReply *retval = g_new(i3ipcVersionReply, 1);
+  i3ipcVersionReply *retval = g_slice_new0(i3ipcVersionReply);
 
   parser = json_parser_new();
   json_parser_load_from_data(parser, reply, -1, &tmp_error);
