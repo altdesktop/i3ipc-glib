@@ -1,10 +1,12 @@
-# i3ipc-glib
+# i3ipc-GLib
 
 A C interface library to [i3wm](http://i3wm.org).
 
-## About i3-ipc
+## About
 
 i3's interprocess communication (or [ipc](http://i3wm.org/docs/ipc.html)) is the interface i3wm uses to receive [commands](http://i3wm.org/docs/userguide.html#_list_of_commands) from client applications such as `i3-msg`. It also features a publish/subscribe mechanism for notifying interested parties of window manager events.
+
+i3ipc-GLib is a C library for controlling the window manager. This project is intended to be useful in applications such as status line generators, pagers, notification daemons, scripting wrappers, external controllers, dock windows, compositors, config templaters, and for debugging or testing the window manager itself.
 
 ## Installation
 
