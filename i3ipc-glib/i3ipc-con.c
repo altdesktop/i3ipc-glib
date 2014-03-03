@@ -180,6 +180,8 @@ static void i3ipc_con_dispose(GObject *gobject) {
 
   self->priv->parent = NULL;
 
+  g_clear_pointer(&self->priv->rect, i3ipc_rect_free);
+
   G_OBJECT_CLASS(i3ipc_con_parent_class)->dispose(gobject);
 }
 
@@ -195,10 +197,11 @@ static void i3ipc_con_finalize(GObject *gobject) {
   g_free(self->priv->orientation);
   g_free(self->priv->name);
   g_free(self->priv->border);
-  i3ipc_rect_free(self->priv->rect);
 
   if (self->priv->nodes)
     g_list_free_full(self->priv->nodes, i3ipc_con_list_free_func);
+
+  G_OBJECT_CLASS(i3ipc_con_parent_class)->finalize(gobject);
 }
 
 static void i3ipc_con_class_init(i3ipcConClass *klass) {

@@ -380,8 +380,7 @@ void i3ipc_window_event_free(i3ipcWindowEvent *event) {
 
   g_free(event->change);
 
-  if (event->container && I3IPC_IS_CON(event->container))
-      g_clear_object(&event->container);
+  g_clear_object(&event->container);
 
   g_slice_free(i3ipcWindowEvent, event);
 }
@@ -483,9 +482,13 @@ static void i3ipc_connection_get_property(GObject *object, guint property_id, GV
 static void i3ipc_connection_dispose(GObject *gobject) {
   i3ipcConnection *self = I3IPC_CONNECTION(gobject);
 
+  g_clear_pointer(&self->priv->init_error, g_error_free);
+
   if (self->priv->connected) {
     g_io_channel_shutdown(self->priv->cmd_channel, TRUE, NULL);
     g_io_channel_shutdown(self->priv->sub_channel, TRUE, NULL);
+    g_clear_pointer(&self->priv->cmd_channel, g_io_channel_unref);
+    g_clear_pointer(&self->priv->sub_channel, g_io_channel_unref);
   }
 
   G_OBJECT_CLASS(i3ipc_connection_parent_class)->dispose(gobject);
@@ -496,13 +499,7 @@ static void i3ipc_connection_finalize(GObject *gobject) {
 
   g_free(self->priv->socket_path);
 
-  if (self->priv->init_error)
-    g_error_free(self->priv->init_error);
-
-  if (self->priv->connected) {
-    g_io_channel_unref(self->priv->cmd_channel);
-    g_io_channel_unref(self->priv->sub_channel);
-  }
+  G_OBJECT_CLASS(i3ipc_connection_parent_class)->finalize(gobject);
 }
 
 static void i3ipc_connected_constructed(GObject *gobject) {
@@ -667,7 +664,7 @@ i3ipcConnection *i3ipc_connection_new(gchar *socket_path, GError **err) {
   i3ipcConnection *conn;
   GError *tmp_error = NULL;
 
-  conn = g_initable_new(I3IPC_TYPE_CONNECTION, NULL, &tmp_error, "socket-path", g_strdup(socket_path), NULL);
+  conn = g_initable_new(I3IPC_TYPE_CONNECTION, NULL, &tmp_error, "socket-path", socket_path, NULL);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
@@ -732,7 +729,7 @@ static gchar *i3ipc_connection_get_socket_path(i3ipcConnection *self, GError **e
   }
 
   int len = xcb_get_property_value_length(prop_reply);
-  socket_path = malloc(len);
+  socket_path = malloc(len + 1);
 
   strncpy(socket_path, (char *)xcb_get_property_value(prop_reply), len);
   socket_path[len] = '\0';
@@ -807,7 +804,7 @@ static int ipc_recv_message(GIOChannel *channel, uint32_t *message_type, uint32_
   if (message_type != NULL)
     memcpy(message_type, walk, sizeof(uint32_t));
 
-  *reply = malloc(*reply_length);
+  *reply = malloc(*reply_length + 1);
 
   read_bytes = 0;
   while (read_bytes < *reply_length) {
@@ -835,7 +832,6 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   JsonObject *json_reply;
 
   ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
-  reply[reply_length] = '\0';
 
   if (err) {
     g_warning("could not get event reply\n");
@@ -845,7 +841,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   }
 
   parser = json_parser_new();
-  json_parser_load_from_data(parser, reply, -1, &err);
+  json_parser_load_from_data(parser, reply, reply_length, &err);
 
   if (err) {
     g_warning("could not parse event reply json\n");
@@ -1147,6 +1143,7 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
   JsonParser *parser;
   JsonGenerator *generator;
   JsonBuilder *builder;
+  JsonNode *tmp_node;
   gchar *reply;
   gchar *payload;
   GError *tmp_error = NULL;
@@ -1180,8 +1177,10 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
   json_builder_end_array(builder);
 
   generator = json_generator_new();
-  json_generator_set_root(generator, json_builder_get_root(builder));
+  tmp_node = json_builder_get_root(builder);
+  json_generator_set_root(generator, tmp_node);
   payload = json_generator_to_data(generator, NULL);
+  json_node_free(tmp_node);
 
   reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_SUBSCRIBE, payload, &tmp_error);
 
