@@ -840,11 +840,13 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
     return TRUE;
   }
 
+  reply[reply_length] = '\0';
+
   parser = json_parser_new();
-  json_parser_load_from_data(parser, reply, reply_length, &err);
+  json_parser_load_from_data(parser, reply, -1, &err);
 
   if (err) {
-    g_warning("could not parse event reply json\n");
+    g_warning("could not parse event reply json (%s)\n", err->message);
     g_error_free(err);
     g_free(reply);
     g_object_unref(parser);
