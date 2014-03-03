@@ -46,7 +46,7 @@ i3ipcinclude_DATA = \
 	$(top_srcdir)/i3ipc-glib/i3ipc-glib.h \
 	$(NULL)
 
-pcfiles = i3ipc-glib.pc
+pcfiles = i3ipc-glib-1.0.pc
 
 i3ipc-glib-1.0.pc: i3ipc-glib.pc
 	$(AM_V_GEN)cp -f $< $@
