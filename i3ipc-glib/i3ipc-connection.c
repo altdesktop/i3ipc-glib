@@ -773,29 +773,41 @@ static int get_file_descriptor(const char *socket_path, GError **err) {
 }
 
 /*
- * Blockingly receives a message from the ipc socket.
+ * Blockingly receives a message from the ipc socket. Returns the status of the last read.
  */
-static int ipc_recv_message(GIOChannel *channel, uint32_t *message_type, uint32_t *reply_length, gchar **reply, GError **err) {
+static GIOStatus ipc_recv_message(GIOChannel *channel, uint32_t *message_type, uint32_t *reply_length, gchar **reply, GError **err) {
   /* Read the message header first */
+  GError *tmp_error = NULL;
   const uint32_t to_read = strlen(I3IPC_MAGIC) + sizeof(uint32_t) + sizeof(uint32_t);
   char msg[to_read];
   char *walk = msg;
   GIOStatus status;
 
-  status = g_io_channel_flush(channel, err);
-  g_assert_true(status);
-  g_assert_no_error(*err);
+  status = g_io_channel_flush(channel, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return status;
+  }
 
   gsize read_bytes = 0;
   while (read_bytes < to_read) {
-    status = g_io_channel_read_chars(channel, msg + read_bytes, to_read - read_bytes, &read_bytes, err);
-    g_assert_true(status);
-    g_assert_no_error(*err);
+    status = g_io_channel_read_chars(channel, msg + read_bytes, to_read - read_bytes, &read_bytes, &tmp_error);
+
+    if (tmp_error != NULL) {
+      g_propagate_error(err, tmp_error);
+      return status;
+    }
+
+    if (status == G_IO_STATUS_EOF)
+      return status;
   }
 
   if (memcmp(walk, I3IPC_MAGIC, strlen(I3IPC_MAGIC)) != 0) {
-    g_error("IPC: invalid magic in reply\n");
-    return -3;
+    /* TODO i3ipc custom errors */
+    tmp_error = g_error_new(G_IO_ERROR, G_IO_ERROR_FAILED, "Invalid magic in reply");
+    g_propagate_error(err, tmp_error);
+    return status;
   }
 
   walk += strlen(I3IPC_MAGIC);
@@ -808,12 +820,18 @@ static int ipc_recv_message(GIOChannel *channel, uint32_t *message_type, uint32_
 
   read_bytes = 0;
   while (read_bytes < *reply_length) {
-    status = g_io_channel_read_chars(channel, *reply + read_bytes, *reply_length - read_bytes, &read_bytes, err);
-    g_assert_true(status);
-    g_assert_no_error(*err);
+    status = g_io_channel_read_chars(channel, *reply + read_bytes, *reply_length - read_bytes, &read_bytes, &tmp_error);
+
+    if (tmp_error != NULL) {
+      g_propagate_error(err, tmp_error);
+      return status;
+    }
+
+    if (status == G_IO_STATUS_EOF)
+      return status;
   }
 
-  return 0;
+  return status;
 }
 
 /*
@@ -824,6 +842,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   if (condition != G_IO_IN)
     return TRUE;
 
+  GIOStatus status;
   uint32_t reply_length;
   uint32_t reply_type;
   gchar *reply;
@@ -831,7 +850,12 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   JsonParser *parser;
   JsonObject *json_reply;
 
-  ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
+  status = ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
+
+  if (status == G_IO_STATUS_EOF) {
+    /* TODO: emit an "ipc-disconnect" event */
+    return FALSE;
+  }
 
   if (err) {
     g_warning("could not get event reply\n");
@@ -1032,9 +1056,10 @@ static int ipc_send_message(GIOChannel *channel, const uint32_t message_size, co
  */
 gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err) {
   GError *tmp_error = NULL;
+  GIOStatus status;
   uint32_t reply_length;
   uint32_t reply_type;
-  gchar *reply;
+  gchar *reply = NULL;
 
   if (self->priv->init_error != NULL) {
     g_propagate_error(err, self->priv->init_error);
@@ -1055,14 +1080,15 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
     return NULL;
   }
 
-  ipc_recv_message(channel, &reply_type, &reply_length, &reply, &tmp_error);
+  status = ipc_recv_message(channel, &reply_type, &reply_length, &reply, &tmp_error);
 
   if (tmp_error != NULL) {
     g_propagate_error(err, tmp_error);
     return NULL;
   }
 
-  reply[reply_length] = '\0';
+  if (status == G_IO_STATUS_NORMAL)
+    reply[reply_length] = '\0';
 
   return reply;
 }
