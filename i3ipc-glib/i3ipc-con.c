@@ -438,3 +438,15 @@ GList *i3ipc_con_descendents(i3ipcCon *self) {
 
   return retval;
 }
+
+/**
+ * i3ipc_con_get_name:
+ * @self: an #i3ipcCon
+ *
+ * Convenience function to get the commonly-needed "name" property of the Con.
+ *
+ * Returns:(transfer none): The "name" property of the Con
+ */
+gchar *i3ipc_con_get_name(i3ipcCon *self) {
+  return self->priv->name;
+}

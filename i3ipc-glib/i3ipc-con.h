@@ -96,4 +96,6 @@ i3ipcCon *i3ipc_con_root(i3ipcCon *self);
 
 GList *i3ipc_con_descendents(i3ipcCon *self);
 
+gchar *i3ipc_con_get_name(i3ipcCon *self);
+
 #endif
