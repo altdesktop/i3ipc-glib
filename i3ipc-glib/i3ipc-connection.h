@@ -22,7 +22,6 @@
 #ifndef __I3IPC_CONNECTION_H__
 #define __I3IPC_CONNECTION_H__
 
-#include <json-glib/json-glib.h>
 #include <glib-object.h>
 
 #include "i3ipc-con.h"

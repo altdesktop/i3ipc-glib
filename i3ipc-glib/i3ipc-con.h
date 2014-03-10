@@ -23,7 +23,6 @@
 #define __I3IPC_CON_H__
 
 #include <glib-object.h>
-#include <json-glib/json-glib.h>
 
 /**
  * SECTION: i3ipc-con
@@ -85,8 +84,6 @@ struct _i3ipcConClass
 
 /* used by I3IPC_TYPE_CON */
 GType i3ipc_con_get_type(void);
-
-i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data);
 
 /* Method definitions */
 

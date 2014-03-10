@@ -38,7 +38,7 @@
 #include <gio/gio.h>
 
 #include "i3ipc-enum-types.h"
-#include "i3ipc-con.h"
+#include "i3ipc-con-private.h"
 #include "i3ipc-connection.h"
 
 typedef struct i3_ipc_header {

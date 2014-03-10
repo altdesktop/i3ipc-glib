@@ -23,7 +23,7 @@
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
 
-#include "i3ipc-con.h"
+#include "i3ipc-con-private.h"
 
 /**
  * i3ipc_rect_copy:
@@ -332,15 +332,6 @@ static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode 
   parent->priv->nodes = g_list_append(parent->priv->nodes, con);
 }
 
-/**
- * i3ipc_con_new:
- * @parent:(allow-none): the parent of the con
- * @data: the json data of the con
- *
- * Allocates a new #i3ipcCon
- *
- * Returns:(transfer full): a new #i3ipcCon
- */
 i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
   i3ipcCon *con;
   con = g_object_new(I3IPC_TYPE_CON, NULL);
