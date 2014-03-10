@@ -5,6 +5,7 @@ AC_INIT([i3-ipc], [0.0.1], [tony@dubstepdish.com])
 m4_pattern_allow([AM_PROG_AR])
 m4_pattern_allow([AM_INIT_AUTOMAKE])
 
+AC_PREFIX_DEFAULT([/usr])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([build/autotools])
 AC_CONFIG_SRCDIR([i3ipc-glib/i3ipc-glib.h])
