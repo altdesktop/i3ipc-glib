@@ -1,6 +1,6 @@
 AC_PREREQ(2.69)
 
-AC_INIT([i3-ipc], [0.0.1], [tony@dubstepdish.com])
+AC_INIT([i3-ipc], [0.1.1], [tony@dubstepdish.com])
 
 AC_PREFIX_DEFAULT([/usr])
 AC_CONFIG_AUX_DIR([build])
