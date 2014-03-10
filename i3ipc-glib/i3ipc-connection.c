@@ -1030,35 +1030,40 @@ static void i3ipc_connection_initable_iface_init (GInitableIface *iface) {
 /*
  * Sends a message to the ipc.
  */
-static int ipc_send_message(GIOChannel *channel, const uint32_t message_size, const uint32_t message_type, const gchar *command, GError **err) {
+static GIOStatus ipc_send_message(GIOChannel *channel, const uint32_t message_size, const uint32_t message_type, const gchar *command, GError **err) {
+  GError *tmp_error = NULL;
+  GIOStatus status;
+  gsize sent_bytes;
+
   const i3_ipc_header_t header = {
-    /* We don’t use I3IPC_MAGIC because it’s a 0-terminated C string. */
     .magic = { 'i', '3', '-', 'i', 'p', 'c' },
     .size = message_size,
     .type = message_type
   };
-  GIOStatus status;
 
-  gsize sent_bytes = 0;
+  sent_bytes = 0;
 
-  /* This first loop is basically unnecessary. No operating system has
-   * buffers which cannot fit 14 bytes into them, so the write() will only be
-   * called once. */
   while (sent_bytes < sizeof(i3_ipc_header_t)) {
-    status = g_io_channel_write_chars(channel, ((void*)&header) + sent_bytes, sizeof(i3_ipc_header_t) - sent_bytes, &sent_bytes, err);
-    g_assert_true(status);
-    g_assert_no_error(*err);
+    status = g_io_channel_write_chars(channel, ((void*)&header) + sent_bytes, sizeof(i3_ipc_header_t) - sent_bytes, &sent_bytes, &tmp_error);
+
+    if (tmp_error != NULL) {
+      g_propagate_error(err, tmp_error);
+      return status;
+    }
   }
 
   sent_bytes = 0;
 
   while (sent_bytes < message_size) {
-    status = g_io_channel_write_chars(channel, command + sent_bytes, message_size - sent_bytes, &sent_bytes, err);
-    g_assert_true(status);
-    g_assert_no_error(*err);
+    status = g_io_channel_write_chars(channel, command + sent_bytes, message_size - sent_bytes, &sent_bytes, &tmp_error);
+
+    if (tmp_error != NULL) {
+      g_propagate_error(err, tmp_error);
+      return status;
+    }
   }
 
-  return 0;
+  return status;
 }
 
 /**
