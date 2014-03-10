@@ -19,7 +19,6 @@
  *
  */
 
-#include <glib.h>
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
 

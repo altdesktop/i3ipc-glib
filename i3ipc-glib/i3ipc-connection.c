@@ -18,22 +18,14 @@
  * Copyright © 2014, Tony Crisci
  */
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
 #include <xcb/xcb.h>
-#include <xcb/xcb_atom.h>
-#include <xcb/xcb_aux.h>
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <sys/un.h>
 #include <sys/errno.h>
 
-#include <glib.h>
-#include <glib/gprintf.h>
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
-#include <gobject/gmarshal.h>
 
 #include <gio/gio.h>
 
@@ -727,7 +719,7 @@ static gchar *i3ipc_connection_get_socket_path(i3ipcConnection *self, GError **e
   }
 
   prop_cookie = xcb_get_property_unchecked(conn,
-      false,                      /* _delete */
+      FALSE,                      /* _delete */
       root,                       /* window */
       atom_reply->atom,           /* property */
       XCB_GET_PROPERTY_TYPE_ANY,  /* type */

@@ -2,9 +2,6 @@ AC_PREREQ(2.69)
 
 AC_INIT([i3-ipc], [0.0.1], [tony@dubstepdish.com])
 
-m4_pattern_allow([AM_PROG_AR])
-m4_pattern_allow([AM_INIT_AUTOMAKE])
-
 AC_PREFIX_DEFAULT([/usr])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([build/autotools])
@@ -18,25 +15,22 @@ AC_PROG_INSTALL
 # Checks for libraries.
 PKG_CHECK_MODULES([xcb], [xcb])
 PKG_CHECK_MODULES([json], [json-glib-1.0])
-PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.38])
 PKG_CHECK_MODULES([gobject], [gobject-2.0 >= 2.38])
 PKG_CHECK_MODULES([gio], [gio-2.0])
 
 # Checks for header files.
-AC_CHECK_HEADERS([fcntl.h stdint.h stdlib.h string.h sys/socket.h])
+AC_CHECK_HEADERS([fcntl.h sys/socket.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
-AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
-AC_TYPE_UINT32_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset socket strerror])
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign -Wno-portability])
 AM_PATH_GLIB_2_0
 AM_PROG_AR
 AM_SILENT_RULES([yes])
