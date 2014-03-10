@@ -678,7 +678,7 @@ static void i3ipc_connection_init(i3ipcConnection *self) {
  *
  * Returns:(transfer full): a new #i3ipcConnection
  */
-i3ipcConnection *i3ipc_connection_new(gchar *socket_path, GError **err) {
+i3ipcConnection *i3ipc_connection_new(const gchar *socket_path, GError **err) {
   i3ipcConnection *conn;
   GError *tmp_error = NULL;
 
@@ -1077,7 +1077,7 @@ static GIOStatus ipc_send_message(GIOChannel *channel, const uint32_t message_si
  *
  * Returns:(transfer full): The reply of the ipc as a string
  */
-gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err) {
+gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, const gchar *payload, GError **err) {
   GError *tmp_error = NULL;
   GIOStatus status;
   uint32_t reply_length;
@@ -1127,7 +1127,7 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
  * Returns:(transfer full) (element-type i3ipcCommandReply): a list of #i3ipcCommandReply structs for each
  * command that was parsed
  */
-GSList *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err) {
+GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GError **err) {
   JsonParser *parser;
   GError *tmp_error = NULL;
   GSList *retval = NULL;
@@ -1285,7 +1285,7 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
  *
  * Returns:(transfer none): the #i3ipcConnection for chaining
  */
-i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback, GError **err) {
+i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, GClosure *callback, GError **err) {
   GError *tmp_error = NULL;
   i3ipcCommandReply *cmd_reply;
   i3ipcEvent flags = 0;
@@ -1676,7 +1676,7 @@ GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err
  *
  * Returns:(transfer full): the bar config reply
  */
-i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err) {
+i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, const gchar *bar_id, GError **err) {
   JsonParser *parser;
   JsonReader *reader;
   gchar *reply;

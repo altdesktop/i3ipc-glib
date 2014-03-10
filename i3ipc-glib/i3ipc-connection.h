@@ -352,17 +352,17 @@ struct _i3ipcConnectionClass
 /* used by I3IPC_TYPE_CONNECTION */
 GType i3ipc_connection_get_type(void);
 
-i3ipcConnection *i3ipc_connection_new(gchar *socket_path, GError **err);
+i3ipcConnection *i3ipc_connection_new(const gchar *socket_path, GError **err);
 
 /* Method definitions */
 
-gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, gchar *payload, GError **err);
+gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, const gchar *payload, GError **err);
 
-GSList *i3ipc_connection_command(i3ipcConnection *self, gchar *command, GError **err);
+GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GError **err);
 
 i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err);
 
-i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, gchar *event, GClosure *callback, GError **err);
+i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, GClosure *callback, GError **err);
 
 GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err);
 
@@ -374,7 +374,7 @@ GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err);
 
 GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err);
 
-i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, gchar *bar_id, GError **err);
+i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, const gchar *bar_id, GError **err);
 
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err);
 

@@ -373,7 +373,7 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
  *
  * Returns:(transfer none) (element-type i3ipcCon): A list of child nodes.
  */
-GList *i3ipc_con_get_nodes(i3ipcCon *self) {
+const GList *i3ipc_con_get_nodes(i3ipcCon *self) {
   return self->priv->nodes;
 }
 
@@ -438,6 +438,6 @@ GList *i3ipc_con_descendents(i3ipcCon *self) {
  *
  * Returns:(transfer none): The "name" property of the Con
  */
-gchar *i3ipc_con_get_name(i3ipcCon *self) {
+const gchar *i3ipc_con_get_name(i3ipcCon *self) {
   return self->priv->name;
 }
