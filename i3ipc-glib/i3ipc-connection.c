@@ -66,6 +66,7 @@ enum {
   MODE,
   WINDOW,
   BARCONFIG_UPDATE,
+  IPC_SHUTDOWN,
   LAST_SIGNAL
 };
 
@@ -645,6 +646,23 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       1,
       I3IPC_TYPE_BARCONFIG_UPDATE_EVENT);    /* n_params */
 
+  /**
+   * i3ipcConnection::ipc_shutdown:
+   * @self: the #i3ipcConnection on which the signal was emitted
+   *
+   * Sent when the Connection receives notice that the ipc has shut down.
+   */
+  connection_signals[IPC_SHUTDOWN] = g_signal_new(
+      "ipc_shutdown",                        /* signal_name */
+      I3IPC_TYPE_CONNECTION,                 /* itype */
+      G_SIGNAL_RUN_FIRST,                    /* signal_flags */
+      0,                                     /* class_offset */
+      NULL,                                  /* accumulator */
+      NULL,                                  /* accu_data */
+      g_cclosure_marshal_VOID__VOID,         /* c_marshaller */
+      G_TYPE_NONE,                           /* return_type */
+      0);                                    /* n_params */
+
 }
 
 static void i3ipc_connection_init(i3ipcConnection *self) {
@@ -853,7 +871,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
   status = ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
 
   if (status == G_IO_STATUS_EOF) {
-    /* TODO: emit an "ipc-disconnect" event */
+    g_signal_emit(conn, connection_signals[IPC_SHUTDOWN], 0);
     return FALSE;
   }
 
