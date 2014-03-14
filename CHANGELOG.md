@@ -1,5 +1,11 @@
 # Changelog - i3ipc-GLib
 
+## Version 0.1.2
+
+This is a minor bugfix release.
+
+* Allow `i3ipc_connection_on` to connect to non-ipc events
+
 ## Version 0.1.1
 
 This release contains a number of small bugfixes and feature enhancements.
