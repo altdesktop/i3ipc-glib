@@ -1298,16 +1298,14 @@ i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, 
   else if (strcmp(event, "barconfig_update") == 0)
     flags = I3IPC_EVENT_BARCONFIG_UPDATE;
 
-  /* no such event */
-  if (flags == 0)
-    return self;
+  if (flags) {
+    cmd_reply = i3ipc_connection_subscribe(self, flags, &tmp_error);
+    i3ipc_command_reply_free(cmd_reply);
 
-  cmd_reply = i3ipc_connection_subscribe(self, flags, &tmp_error);
-  i3ipc_command_reply_free(cmd_reply);
-
-  if (tmp_error != NULL) {
-    g_propagate_error(err, tmp_error);
-    return NULL;
+    if (tmp_error != NULL) {
+      g_propagate_error(err, tmp_error);
+      return NULL;
+    }
   }
 
   g_signal_connect_closure(self, event, callback, TRUE);
