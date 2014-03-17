@@ -80,6 +80,8 @@ i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply) {
   retval = g_slice_new0(i3ipcCommandReply);
   *retval = *reply;
 
+  retval->error = g_strdup(reply->error);
+
   return retval;
 }
 
@@ -117,6 +119,8 @@ i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version) {
   retval = g_slice_new0(i3ipcVersionReply);
   *retval = *version;
 
+  retval->human_readable = g_strdup(version->human_readable);
+
   return retval;
 }
 
@@ -137,6 +141,14 @@ void i3ipc_version_reply_free(i3ipcVersionReply *version) {
 G_DEFINE_BOXED_TYPE(i3ipcVersionReply, i3ipc_version_reply,
     i3ipc_version_reply_copy, i3ipc_version_reply_free);
 
+static void bar_config_colors_copy_func(gpointer _key, gpointer _value, gpointer user_data) {
+  gchar *key = _key;
+  gchar *value = _value;
+  GHashTable *copy = user_data;
+
+  g_hash_table_insert(copy, g_strdup(key), g_strdup(value));
+}
+
 /**
  * i3ipc_bar_config_reply_copy:
  * @config: a #i3ipcBarConfigReply struct
@@ -152,6 +164,15 @@ i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config) {
 
   retval = g_slice_new0(i3ipcBarConfigReply);
   *retval = *config;
+
+  retval->position = g_strdup(config->position);
+  retval->font = g_strdup(config->font);
+  retval->mode = g_strdup(config->mode);
+  retval->id = g_strdup(config->id);
+  retval->status_command = g_strdup(config->status_command);
+
+  retval->colors = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+  g_hash_table_foreach(config->colors, bar_config_colors_copy_func, retval->colors);
 
   return retval;
 }
@@ -195,6 +216,10 @@ i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output) {
   retval = g_slice_new0(i3ipcOutputReply);
   *retval = *output;
 
+  retval->name = g_strdup(output->name);
+  retval->current_workspace = g_strdup(output->current_workspace);
+  retval->rect = i3ipc_rect_copy(output->rect);
+
   return retval;
 }
 
@@ -235,6 +260,10 @@ i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace) 
   retval = g_slice_new0(i3ipcWorkspaceReply);
   *retval = *workspace;
 
+  retval->name = g_strdup(workspace->name);
+  retval->output = g_strdup(workspace->output);
+  retval->rect = i3ipc_rect_copy(workspace->rect);
+
   return retval;
 }
 
@@ -274,6 +303,14 @@ i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
 
   retval = g_slice_new0(i3ipcWorkspaceEvent);
   *retval = *event;
+
+  retval->change = g_strdup(event->change);
+
+  if (event->current && I3IPC_IS_CON(event->current))
+    g_object_ref(event->current);
+
+  if (event->old && I3IPC_IS_CON(event->old))
+    g_object_ref(event->old);
 
   return retval;
 }
@@ -320,6 +357,8 @@ i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
   retval = g_slice_new0(i3ipcGenericEvent);
   *retval = *event;
 
+  retval->change = g_strdup(event->change);
+
   return retval;
 }
 
@@ -357,6 +396,9 @@ i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event) {
 
   retval = g_slice_new0(i3ipcWindowEvent);
   *retval = *event;
+
+  retval->change = g_strdup(event->change);
+  g_object_ref(event->container);
 
   return retval;
 }
@@ -396,6 +438,10 @@ i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdat
 
   retval = g_slice_new0(i3ipcBarconfigUpdateEvent);
   *retval = *event;
+
+  retval->hidden_state = g_strdup(event->hidden_state);
+  retval->id = g_strdup(event->id);
+  retval->mode = g_strdup(event->mode);
 
   return retval;
 }
