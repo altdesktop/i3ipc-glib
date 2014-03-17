@@ -15,7 +15,7 @@ AC_PROG_INSTALL
 # Checks for libraries.
 PKG_CHECK_MODULES([xcb], [xcb])
 PKG_CHECK_MODULES([json], [json-glib-1.0])
-PKG_CHECK_MODULES([gobject], [gobject-2.0 >= 2.38])
+PKG_CHECK_MODULES([gobject], [gobject-2.0 >= 2.32])
 PKG_CHECK_MODULES([gio], [gio-2.0])
 
 # Checks for header files.
@@ -36,7 +36,7 @@ AM_PROG_AR
 AM_SILENT_RULES([yes])
 LT_INIT
 
-GOBJECT_INTROSPECTION_CHECK([1.38.0])
+GOBJECT_INTROSPECTION_CHECK([1.32.0])
 
 AC_CONFIG_FILES([
                  Makefile
