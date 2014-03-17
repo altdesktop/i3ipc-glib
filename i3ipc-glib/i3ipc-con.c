@@ -76,7 +76,7 @@ struct _i3ipcConPrivate {
   i3ipcCon *parent;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (i3ipcCon, i3ipc_con, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_CODE (i3ipcCon, i3ipc_con, G_TYPE_OBJECT, G_ADD_PRIVATE(i3ipcCon));
 
 enum {
   PROP_0,
