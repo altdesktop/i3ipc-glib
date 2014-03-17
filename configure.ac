@@ -2,7 +2,6 @@ AC_PREREQ(2.69)
 
 AC_INIT([i3-ipc], [0.1.2], [tony@dubstepdish.com])
 
-AC_PREFIX_DEFAULT([/usr])
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([build/autotools])
 AC_CONFIG_SRCDIR([i3ipc-glib/i3ipc-glib.h])
