@@ -477,7 +477,7 @@ struct _i3ipcConnectionPrivate {
 
 static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE(i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT, G_ADD_PRIVATE(i3ipcConnection) G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE, i3ipc_connection_initable_iface_init));
+G_DEFINE_TYPE_WITH_CODE(i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT, G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE, i3ipc_connection_initable_iface_init));
 
 static void i3ipc_connection_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec) {
   i3ipcConnection *self = I3IPC_CONNECTION(object);
@@ -521,13 +521,13 @@ static void i3ipc_connection_get_property(GObject *object, guint property_id, GV
 static void i3ipc_connection_dispose(GObject *gobject) {
   i3ipcConnection *self = I3IPC_CONNECTION(gobject);
 
-  g_clear_pointer(&self->priv->init_error, g_error_free);
+  g_clear_error(&self->priv->init_error);
 
   if (self->priv->connected) {
     g_io_channel_shutdown(self->priv->cmd_channel, TRUE, NULL);
     g_io_channel_shutdown(self->priv->sub_channel, TRUE, NULL);
-    g_clear_pointer(&self->priv->cmd_channel, g_io_channel_unref);
-    g_clear_pointer(&self->priv->sub_channel, g_io_channel_unref);
+    self->priv->sub_channel = (g_io_channel_unref(self->priv->sub_channel), NULL);
+    self->priv->cmd_channel = (g_io_channel_unref(self->priv->cmd_channel), NULL);
   }
 
   G_OBJECT_CLASS(i3ipc_connection_parent_class)->dispose(gobject);
@@ -701,10 +701,11 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       G_TYPE_NONE,                           /* return_type */
       0);                                    /* n_params */
 
+  g_type_class_add_private(klass, sizeof(i3ipcConnectionPrivate));
 }
 
 static void i3ipc_connection_init(i3ipcConnection *self) {
-  self->priv = i3ipc_connection_get_instance_private (self);
+  self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self, I3IPC_TYPE_CONNECTION, i3ipcConnectionPrivate);
 }
 
 /**
