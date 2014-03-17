@@ -13,7 +13,7 @@ i3ipc-GLib is a C library for controlling the window manager. This project is in
 Building the library requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system). Install the project with:
 
 ```shell
-./autogen.sh prefix=/usr
+./autogen.sh
 make
 sudo make install
 ```
@@ -21,8 +21,8 @@ sudo make install
 The following packages are required for building i3-ipc:
 
 * libxcb and xcb-proto
-* glib >= 2.38
-* json-glib >= 0.16
+* glib >= 2.32
+* json-glib >= 0.14
 
 ## Example
 
