@@ -30,7 +30,7 @@
  *
  * Creates a dynamically allocated i3ipc rect as a copy of @rect.
  *
- * Returns:(transfer full): a newly-allocated copy of @rect.
+ * Returns: (transfer full): a newly-allocated copy of @rect.
  */
 i3ipcRect *i3ipc_rect_copy(i3ipcRect *rect) {
   i3ipcRect *retval;
@@ -303,7 +303,7 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         G_PARAM_READABLE);
 
   /**
-   * i3ipcCon:nodes:(type GList(i3ipcCon)):
+   * i3ipcCon:nodes: (type GList(i3ipcCon)):
    *
    * This property is a list of the con's nodes.
    */
@@ -372,7 +372,7 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
  * i3ipc_con_get_nodes:
  * @self: an #i3ipcCon
  *
- * Returns:(transfer none) (element-type i3ipcCon): A list of child nodes.
+ * Returns: (transfer none) (element-type i3ipcCon): A list of child nodes.
  */
 const GList *i3ipc_con_get_nodes(i3ipcCon *self) {
   return self->priv->nodes;
@@ -382,7 +382,7 @@ const GList *i3ipc_con_get_nodes(i3ipcCon *self) {
  * i3ipc_con_root:
  * @self: an #i3ipcCon
  *
- * Returns:(transfer none): The root node of the tree.
+ * Returns: (transfer none): The root node of the tree.
  */
 i3ipcCon *i3ipc_con_root(i3ipcCon *self) {
   i3ipcCon *retval = self;
@@ -412,7 +412,7 @@ static void i3ipc_con_collect_descendents_func(gpointer data, gpointer user_data
  * i3ipc_con_descendents:
  * @self: an #i3ipcCon
  *
- * Returns:(transfer container) (element-type i3ipcCon): a list of descendent nodes
+ * Returns: (transfer container) (element-type i3ipcCon): a list of descendent nodes
  */
 GList *i3ipc_con_descendents(i3ipcCon *self) {
   GList *retval;
@@ -437,7 +437,7 @@ GList *i3ipc_con_descendents(i3ipcCon *self) {
  *
  * Convenience function to get the commonly-needed "name" property of the Con.
  *
- * Returns:(transfer none): The "name" property of the Con
+ * Returns: (transfer none): The "name" property of the Con
  */
 const gchar *i3ipc_con_get_name(i3ipcCon *self) {
   return self->priv->name;

@@ -70,7 +70,7 @@ static guint connection_signals[LAST_SIGNAL] = {0};
  *
  * Creates a dynamically allocated i3ipc command reply as a copy of @reply.
  *
- * Returns:(transfer full): a newly-allocated copy of @reply
+ * Returns: (transfer full): a newly-allocated copy of @reply
  */
 i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply) {
   i3ipcCommandReply *retval;
@@ -87,7 +87,7 @@ i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply) {
 
 /**
  * i3ipc_command_reply_free:
- * @reply:(allow-none): a #i3ipcCommandReply
+ * @reply: (allow-none): a #i3ipcCommandReply
  *
  * Frees @reply. If @reply is %NULL, it simply returns.
  */
@@ -109,7 +109,7 @@ G_DEFINE_BOXED_TYPE(i3ipcCommandReply, i3ipc_command_reply,
  *
  * Creates a dynamically allocated i3ipc version reply as a copy of @version.
  *
- * Returns:(transfer full): a newly-allocated copy of @version
+ * Returns: (transfer full): a newly-allocated copy of @version
  */
 i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version) {
   i3ipcVersionReply *retval;
@@ -155,7 +155,7 @@ static void bar_config_colors_copy_func(gpointer _key, gpointer _value, gpointer
  *
  * Creates a dynamically allocated i3ipc version reply as a copy of @config.
  *
- * Returns:(transfer full): a newly-allocated copy of @config
+ * Returns: (transfer full): a newly-allocated copy of @config
  */
 i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config) {
   i3ipcBarConfigReply *retval;
@@ -179,7 +179,7 @@ i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config) {
 
 /**
  * i3ipc_bar_config_reply_free:
- * @config:(allow-none): a #i3ipcBarConfigReply
+ * @config: (allow-none): a #i3ipcBarConfigReply
  *
  * Frees @config. If @config is %NULL, it simply returns.
  */
@@ -206,7 +206,7 @@ G_DEFINE_BOXED_TYPE(i3ipcBarConfigReply, i3ipc_bar_config_reply,
  *
  * Creates a dynamically allocated i3ipc output reply as a copy of @output.
  *
- * Returns:(transfer full): a newly-allocated copy of @output
+ * Returns: (transfer full): a newly-allocated copy of @output
  */
 i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output) {
   i3ipcOutputReply *retval;
@@ -225,7 +225,7 @@ i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output) {
 
 /**
  * i3ipc_output_reply_free:
- * @output:(allow-none): a #i3ipcOutputReply
+ * @output: (allow-none): a #i3ipcOutputReply
  *
  * Frees @output. If @output is %NULL, it simply returns.
  */
@@ -250,7 +250,7 @@ G_DEFINE_BOXED_TYPE(i3ipcOutputReply, i3ipc_output_reply,
  * Creates a dynamically allocated i3ipc workspace reply as a copy of
  * @workspace.
  *
- * Returns:(transfer full): a newly-allocated copy of @workspace
+ * Returns: (transfer full): a newly-allocated copy of @workspace
  */
 i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace) {
   i3ipcWorkspaceReply *retval;
@@ -269,7 +269,7 @@ i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace) 
 
 /**
  * i3ipc_workspace_reply_free:
- * @workspace:(allow-none): a #i3ipcWorkspaceReply
+ * @workspace: (allow-none): a #i3ipcWorkspaceReply
  *
  * Frees @workspace. If @workspace is %NULL, it simply returns.
  */
@@ -294,7 +294,7 @@ G_DEFINE_BOXED_TYPE(i3ipcWorkspaceReply, i3ipc_workspace_reply,
  * Creates a dynamically allocated i3ipc workspace event data container as a copy
  * of @event.
  *
- * Returns:(transfer full): a newly-allocated copy of @event
+ * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
   i3ipcWorkspaceEvent *retval;
@@ -317,7 +317,7 @@ i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
 
 /**
  * i3ipc_workspace_event_free:
- * @event:(allow-none): a #i3ipcWorkspaceEvent
+ * @event: (allow-none): a #i3ipcWorkspaceEvent
  *
  * Frees @event. If @event is %NULL, it simply returns.
  */
@@ -347,7 +347,7 @@ G_DEFINE_BOXED_TYPE(i3ipcWorkspaceEvent, i3ipc_workspace_event,
  * Creates a dynamically allocated i3ipc generic event data container as a copy
  * of @event.
  *
- * Returns:(transfer full): a newly-allocated copy of @event
+ * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
   i3ipcGenericEvent *retval;
@@ -364,7 +364,7 @@ i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
 
 /**
  * i3ipc_generic_event_free:
- * @event:(allow-none): a #i3ipcGenericEvent
+ * @event: (allow-none): a #i3ipcGenericEvent
  *
  * Frees @event. If @event is %NULL, it simply returns.
  */
@@ -387,7 +387,7 @@ G_DEFINE_BOXED_TYPE(i3ipcGenericEvent, i3ipc_generic_event,
  * Creates a dynamically allocated i3ipc window event data container as a copy
  * of @event.
  *
- * Returns:(transfer full): a newly-allocated copy of @event
+ * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event) {
   i3ipcWindowEvent *retval;
@@ -405,7 +405,7 @@ i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event) {
 
 /**
  * i3ipc_window_event_free:
- * @event:(allow-none): a #i3ipcWindowEvent
+ * @event: (allow-none): a #i3ipcWindowEvent
  *
  * Frees @event. If @event is %NULL, it simply returns.
  */
@@ -429,7 +429,7 @@ G_DEFINE_BOXED_TYPE(i3ipcWindowEvent, i3ipc_window_event,
  *
  * Creates a dynamically allocated i3ipc barconfig update event data container
  * as a copy of @event.
- * Returns:(transfer full): a newly-allocated copy of @event
+ * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdateEvent *event) {
   i3ipcBarconfigUpdateEvent *retval;
@@ -448,7 +448,7 @@ i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdat
 
 /**
  * i3ipc_barconfig_update_free:
- * @event:(allow-none): a #i3ipcBarconfigUpdateEvent
+ * @event: (allow-none): a #i3ipcBarconfigUpdateEvent
  *
  * Frees @event. If @event is %NULL, it simply returns.
  */
@@ -710,12 +710,12 @@ static void i3ipc_connection_init(i3ipcConnection *self) {
 
 /**
  * i3ipc_connection_new:
- * @socket_path:(allow-none): the path of the socket to connect to
- * @err:(allow-none): return location for a GError, or NULL
+ * @socket_path: (allow-none): the path of the socket to connect to
+ * @err: (allow-none): return location for a GError, or NULL
  *
  * Allocates a new #i3ipcConnection
  *
- * Returns:(transfer full): a new #i3ipcConnection
+ * Returns: (transfer full): a new #i3ipcConnection
  */
 i3ipcConnection *i3ipc_connection_new(const gchar *socket_path, GError **err) {
   i3ipcConnection *conn;
@@ -1109,12 +1109,12 @@ static GIOStatus ipc_send_message(GIOChannel *channel, const uint32_t message_si
  * i3ipc_connection_message:
  * @self: A #i3ipcConnection
  * @message_type: The type of message to send to i3
- * @payload:(allow-none): The body of the command
- * @err:(allow-none): return location for a GError, or NULL
+ * @payload: (allow-none): The body of the command
+ * @err: (allow-none): return location for a GError, or NULL
  *
  * Sends a command to the ipc synchronously.
  *
- * Returns:(transfer full): The reply of the ipc as a string
+ * Returns: (transfer full): The reply of the ipc as a string
  */
 gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, const gchar *payload, GError **err) {
   GError *tmp_error = NULL;
@@ -1159,11 +1159,11 @@ gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_
  * i3ipc_connection_command:
  * @self: A #i3ipcConnection
  * @command: The command to send to i3
- * @err:(allow-none): return location of a GError, or NULL
+ * @err: (allow-none): return location of a GError, or NULL
  *
  * Sends a command to the ipc synchronously.
  *
- * Returns:(transfer full) (element-type i3ipcCommandReply): a list of #i3ipcCommandReply structs for each
+ * Returns: (transfer full) (element-type i3ipcCommandReply): a list of #i3ipcCommandReply structs for each
  * command that was parsed
  */
 GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GError **err) {
@@ -1223,11 +1223,11 @@ GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GE
  * i3ipc_connection_subscribe:
  * @self: A #i3ipcConnection
  * @events: The name of an IPC event
- * @err:(allow-none): The location of a GError or NULL
+ * @err: (allow-none): The location of a GError or NULL
  *
  * Subscribes to the events given by the flags
  *
- * Returns:(transfer full): The ipc reply
+ * Returns: (transfer full): The ipc reply
  */
 i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err) {
   JsonParser *parser;
@@ -1317,12 +1317,12 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
  * i3ipc_connection_on:
  * @self: an #i3ipcConnection
  * @event: the event to subscribe to
- * @callback:(scope notified): the callback to run on the event
- * @err:(allow-none): return location of a GError, or NULL
+ * @callback: (scope notified): the callback to run on the event
+ * @err: (allow-none): return location of a GError, or NULL
  *
  * A convenience function for bindings to subscribe an event with a callback
  *
- * Returns:(transfer none): the #i3ipcConnection for chaining
+ * Returns: (transfer none): the #i3ipcConnection for chaining
  */
 i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, GClosure *callback, GError **err) {
   GError *tmp_error = NULL;
@@ -1363,11 +1363,11 @@ i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, 
 /**
  * i3ipc_connection_get_workspaces:
  * @self: An #i3ipcConnection
- * @err:(allow-none): return location of a GError, or NULL
+ * @err: (allow-none): return location of a GError, or NULL
  *
  * Gets the current workspaces. The reply will be list workspaces
  *
- * Returns:(transfer full) (element-type i3ipcWorkspaceReply): a list of workspaces
+ * Returns: (transfer full) (element-type i3ipcWorkspaceReply): a list of workspaces
  */
 GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
   JsonParser *parser;
@@ -1465,11 +1465,11 @@ GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
 /**
  * i3ipc_connection_get_outputs:
  * @self: An #i3ipcConnection
- * @err:(allow-none): return location of a GError, or NULL
+ * @err: (allow-none): return location of a GError, or NULL
  *
  * Gets the current outputs. The reply will be a list of outputs
  *
- * Returns:(transfer full) (element-type i3ipcOutputReply): a list of outputs
+ * Returns: (transfer full) (element-type i3ipcOutputReply): a list of outputs
  */
 GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
   JsonParser *parser;
@@ -1555,12 +1555,12 @@ GSList *i3ipc_connection_get_outputs(i3ipcConnection *self, GError **err) {
 /**
  * i3ipc_connection_get_tree:
  * @self: An #i3ipcConnection
- * @err:(allow-none): return location for a GError, or NULL
+ * @err: (allow-none): return location for a GError, or NULL
  *
  * Gets the layout tree. i3 uses a tree as data structure which includes every
  * container.
  *
- * Returns:(transfer full): the root container
+ * Returns: (transfer full): the root container
  */
 i3ipcCon *i3ipc_connection_get_tree(i3ipcConnection *self, GError **err) {
   JsonParser *parser;
@@ -1599,12 +1599,12 @@ i3ipcCon *i3ipc_connection_get_tree(i3ipcConnection *self, GError **err) {
 /**
  * i3ipc_connection_get_marks:
  * @self: An #i3ipcConnection
- * @err:(allow-none): return location for a GError, or NULL
+ * @err: (allow-none): return location for a GError, or NULL
  *
  * Gets a list of marks (identifiers for containers to easily jump to them
  * later). The reply will be a list of window marks.
  *
- * Returns:(transfer full) (element-type utf8): a list of strings representing marks
+ * Returns: (transfer full) (element-type utf8): a list of strings representing marks
  */
 GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
   JsonParser *parser;
@@ -1653,11 +1653,11 @@ GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err) {
 /**
  * i3ipc_connection_get_bar_config_list:
  * @self: An #i3ipcConnection
- * @err:(allow-none): return location for a GError, or NULL
+ * @err: (allow-none): return location for a GError, or NULL
  *
  * Gets a list of all configured bar ids.
  *
- * Returns:(transfer full) (element-type utf8): the configured bar ids
+ * Returns: (transfer full) (element-type utf8): the configured bar ids
  */
 GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err) {
   JsonParser *parser;
@@ -1707,11 +1707,11 @@ GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err
  * i3ipc_connection_get_bar_config:
  * @self: An #i3ipcConnection
  * @bar_id: The id of the particular bar
- * @err:(allow-none): return location for a GError, or NULL
+ * @err: (allow-none): return location for a GError, or NULL
  *
  * Gets the configuration of the workspace bar with the given ID.
  *
- * Returns:(transfer full): the bar config reply
+ * Returns: (transfer full): the bar config reply
  */
 i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, const gchar *bar_id, GError **err) {
   JsonParser *parser;
@@ -1798,12 +1798,12 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, cons
 /**
  * i3ipc_connection_get_version:
  * @self: An #i3ipcConnection
- * @err:(allow-none): return location for a GError, or NULL
+ * @err: (allow-none): return location for a GError, or NULL
  *
  * Gets the version of i3. The reply will be a boxed structure with the major,
  * minor, patch and human-readable version.
  *
- * Returns:(transfer full): an #i3ipcVersionReply
+ * Returns: (transfer full): an #i3ipcVersionReply
  */
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err) {
   JsonParser *parser;
