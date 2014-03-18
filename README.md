@@ -8,6 +8,8 @@ i3's interprocess communication (or [ipc](http://i3wm.org/docs/ipc.html)) is the
 
 i3ipc-GLib is a C library for controlling the window manager. This project is intended to be useful in applications such as status line generators, pagers, notification daemons, scripting wrappers, external controllers, dock windows, compositors, config templaters, and for debugging or testing the window manager itself.
 
+The latest documentation can be found online [here](http://dubstepdish.com/i3ipc-glib).
+
 ## Installation
 
 Building the library requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system). Install the project with:
