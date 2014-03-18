@@ -18,6 +18,8 @@ AM_CFLAGS = -std=gnu99 -Wall
 
 source_h = \
 	$(top_srcdir)/i3ipc-glib/i3ipc-con.h \
+	$(top_srcdir)/i3ipc-glib/i3ipc-event-types.h \
+	$(top_srcdir)/i3ipc-glib/i3ipc-reply-types.h \
 	$(top_srcdir)/i3ipc-glib/i3ipc-connection.h \
 	$(NULL)
 
@@ -27,13 +29,15 @@ source_h_private = \
 
 source_c = \
 	i3ipc-con.c \
+	i3ipc-event-types.c \
+	i3ipc-reply-types.c \
 	i3ipc-connection.c \
 	$(NULL)
 
 # glib-mkenums rules
 glib_enum_h = i3ipc-enum-types.h
 glib_enum_c = i3ipc-enum-types.c
-glib_enum_headers = i3ipc-connection.h
+glib_enum_headers = $(source_h)
 include $(top_srcdir)/i3ipc-glib/Makefile.am.enums
 
 lib_LTLIBRARIES += libi3ipc-glib-1.0.la
