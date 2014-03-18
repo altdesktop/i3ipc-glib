@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+  <!ENTITY version SYSTEM "version.xml">
+  <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+]>
+<book id="index">
+  <bookinfo>
+    <title>i3ipc-glib Reference Manual</title>
+    <releaseinfo>
+      for i3ipc-glib &version;
+      The latest version of this documentation can be found on-line at
+      <ulink role="online-location" url="http://dubstepdish.com/i3ipc-glib/index.html">http://dubstepdish.com/i3ipc-glib/</ulink>.
+    </releaseinfo>
+  </bookinfo>
+
+  <chapter>
+    <title>Data Types</title>
+    <xi:include href="xml/i3ipc-con.xml"/>
+    <xi:include href="xml/i3ipc-connection.xml"/>
+    <xi:include href="xml/i3ipc-event-types.xml"/>
+    <xi:include href="xml/i3ipc-reply-types.xml"/>
+
+  </chapter>
+  <chapter id="object-tree">
+    <title>Object Hierarchy</title>
+     <xi:include href="xml/tree_index.sgml"/>
+  </chapter>
+  <index id="api-index-full">
+    <title>API Index</title>
+    <xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="deprecated-api-index" role="deprecated">
+    <title>Index of deprecated API</title>
+    <xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include>
+  </index>
+
+  <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
+</book>

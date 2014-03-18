@@ -1,6 +1,12 @@
+m4_define([i3ipc_major_version], [0])
+m4_define([i3ipc_minor_version], [1])
+m4_define([i3ipc_micro_version], [2])
+
+m4_define([i3ipc_version], [i3ipc_major_version.i3ipc_minor_version.i3ipc_micro_version])
+
 AC_PREREQ(2.69)
 
-AC_INIT([i3-ipc], [0.1.2], [tony@dubstepdish.com])
+AC_INIT([i3ipc], [i3ipc_version], [tony@dubstepdish.com])
 
 AC_CONFIG_AUX_DIR([build])
 AC_CONFIG_MACRO_DIR([build/autotools])
@@ -35,12 +41,28 @@ AM_PROG_AR
 AM_SILENT_RULES([yes])
 LT_INIT
 
+# Versioning
+I3IPC_MAJOR_VERSION=i3ipc_major_version
+I3IPC_MINOR_VERSION=i3ipc_minor_version
+I3IPC_MICRO_VERSION=i3ipc_micro_version
+I3IPC_VERSION=i3ipc_version
+AC_SUBST(I3IPC_MAJOR_VERSION)
+AC_SUBST(I3IPC_MINOR_VERSION)
+AC_SUBST(I3IPC_MICRO_VERSION)
+AC_SUBST(I3IPC_VERSION)
+
 GOBJECT_INTROSPECTION_CHECK([1.32.0])
+
+# Check for gtk-doc
+GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
 AC_CONFIG_FILES([
                  Makefile
                  i3ipc-glib/Makefile
                  i3ipc-glib/i3ipc-glib.pc
+                 doc/Makefile
+                 doc/reference/Makefile
+                 doc/reference/version.xml
                  ])
 
 AC_OUTPUT
