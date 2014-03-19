@@ -51,6 +51,8 @@ i3ipcinclude_DATA = \
 	$(top_srcdir)/i3ipc-glib/i3ipc-glib.h \
 	$(NULL)
 
+EXTRA_DIST += i3ipc-glib.h
+
 pcfiles = i3ipc-glib-1.0.pc
 
 i3ipc-glib-1.0.pc: i3ipc-glib.pc
@@ -59,6 +61,7 @@ i3ipc-glib-1.0.pc: i3ipc-glib.pc
 pkgconfig_DATA = $(pcfiles)
 pkgconfigdir = $(libdir)/pkgconfig
 CLEANFILES += $(pcfiles)
+EXTRA_DIST += i3ipc-glib.pc.in
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = i3ipc_1_0_gir
