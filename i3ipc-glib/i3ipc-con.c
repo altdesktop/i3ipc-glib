@@ -570,3 +570,36 @@ GList *i3ipc_con_workspaces(i3ipcCon *self) {
 
   return retval;
 }
+
+static gint i3ipc_con_focused_cmp_func(gconstpointer a, gconstpointer b) {
+  const i3ipcCon *con = a;
+
+  return con->priv->focused ? 0 : 1;
+}
+
+/**
+ * i3ipc_con_find_focused:
+ * @self: an #i3ipcCon
+ *
+ * Returns: (transfer none): The focused Con, or NULL if not found in this Con.
+ *
+ */
+i3ipcCon *i3ipc_con_find_focused(i3ipcCon *self) {
+  GList *descendents;
+  GList *cmp_result;
+  i3ipcCon *retval = NULL;
+
+  descendents = i3ipc_con_descendents(self);
+
+  if (descendents == NULL)
+    return NULL;
+
+  cmp_result = g_list_find_custom(descendents, NULL, i3ipc_con_focused_cmp_func);
+
+  if (cmp_result != NULL)
+    retval = I3IPC_CON(cmp_result->data);
+
+  g_list_free(descendents);
+
+  return retval;
+}
