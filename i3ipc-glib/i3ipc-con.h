@@ -99,4 +99,6 @@ void i3ipc_con_command(i3ipcCon *self, const gchar* command, GError **err);
 
 void i3ipc_con_command_children(i3ipcCon *self, const gchar* command, GError **err);
 
+GList *i3ipc_con_workspaces(i3ipcCon *self);
+
 #endif

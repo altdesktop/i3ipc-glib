@@ -533,3 +533,40 @@ void i3ipc_con_command_children(i3ipcCon *self, const gchar* command, GError **e
   g_free(reply);
   g_string_free(criterion, TRUE);
 }
+
+static void i3ipc_con_collect_workspaces_func(gpointer data, gpointer user_data) {
+  i3ipcCon *con = I3IPC_CON(data);
+  GList *workspaces = (GList *)user_data;
+
+  if (g_strcmp0(con->priv->type, "workspace") == 0 && !g_str_has_prefix(con->priv->name, "__"))
+    workspaces = g_list_append(workspaces, con);
+  else if (workspaces != NULL)
+    g_list_foreach(con->priv->nodes, i3ipc_con_collect_workspaces_func, workspaces);
+}
+
+/**
+ * i3ipc_con_workspaces:
+ * @self: an #i3ipcCon
+ *
+ * Returns: (transfer container) (element-type i3ipcCon): a list of workspaces in the tree
+ */
+GList *i3ipc_con_workspaces(i3ipcCon *self) {
+  GList *retval;
+  i3ipcCon *root;
+
+  root = i3ipc_con_root(self);
+
+  /* this could happen for incomplete trees */
+  if (!root->priv->nodes)
+    return NULL;
+
+  /* the list has to have a first element for some reason. */
+  retval = g_list_alloc();
+
+  g_list_foreach(root->priv->nodes, i3ipc_con_collect_workspaces_func, retval);
+
+  /* XXX: I hope this doesn't leak */
+  retval = g_list_remove_link(retval, g_list_first(retval));
+
+  return retval;
+}
