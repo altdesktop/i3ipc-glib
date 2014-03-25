@@ -449,3 +449,31 @@ GList *i3ipc_con_descendents(i3ipcCon *self) {
 const gchar *i3ipc_con_get_name(i3ipcCon *self) {
   return self->priv->name;
 }
+
+/**
+ * i3ipc_con_command:
+ * @self: an #i3ipcCon
+ * @command: the command to execute on the con
+ * @err (allow-none): the location of a GError or NULL
+ *
+ * Convenience function to execute a command in the context of the container
+ * (it will be selected by criteria)
+ *
+ */
+void i3ipc_con_command(i3ipcCon *self, const gchar* command, GError **err) {
+  gchar *reply;
+  gchar *context_command;
+  GError *tmp_error = NULL;
+
+  g_return_if_fail(err == NULL || *err == NULL);
+
+  context_command = g_strdup_printf("[con_id=\"%d\"] %s", self->priv->id, command);
+
+  reply = i3ipc_connection_message(self->priv->conn, I3IPC_MESSAGE_TYPE_COMMAND, context_command, &tmp_error);
+
+  if (tmp_error != NULL)
+    g_propagate_error(err, tmp_error);
+
+  g_free(reply);
+  g_free(context_command);
+}
