@@ -196,7 +196,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
   connection_signals[WORKSPACE] = g_signal_new(
       "workspace",                          /* signal_name */
       I3IPC_TYPE_CONNECTION,                /* itype */
-      G_SIGNAL_RUN_LAST,                    /* signal_flags */
+      G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,/* signal_flags */
       0,                                    /* class_offset */
       NULL,                                 /* accumulator */
       NULL,                                 /* accu_data */
@@ -216,7 +216,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
   connection_signals[OUTPUT] = g_signal_new(
       "output",                              /* signal_name */
       I3IPC_TYPE_CONNECTION,                 /* itype */
-      G_SIGNAL_RUN_FIRST,                    /* signal_flags */
+      G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,/* signal_flags */
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
@@ -235,7 +235,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
   connection_signals[MODE] = g_signal_new(
       "mode",                                /* signal_name */
       I3IPC_TYPE_CONNECTION,                 /* itype */
-      G_SIGNAL_RUN_FIRST,                    /* signal_flags */
+      G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,/* signal_flags */
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
@@ -255,7 +255,7 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
   connection_signals[WINDOW] = g_signal_new(
       "window",                              /* signal_name */
       I3IPC_TYPE_CONNECTION,                 /* itype */
-      G_SIGNAL_RUN_FIRST,                    /* signal_flags */
+      G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,/* signal_flags */
       0,                                     /* class_offset */
       NULL,                                  /* accumulator */
       NULL,                                  /* accu_data */
@@ -550,7 +550,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
         if (json_object_has_member(json_reply, "old") && !json_object_get_null_member(json_reply, "old"))
           e->old = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "old"), conn);
 
-        g_signal_emit(conn, connection_signals[WORKSPACE], 0, e);
+        g_signal_emit(conn, connection_signals[WORKSPACE], g_quark_from_string(e->change), e);
         break;
       }
 
@@ -560,7 +560,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
 
-        g_signal_emit(conn, connection_signals[OUTPUT], 0, e);
+        g_signal_emit(conn, connection_signals[OUTPUT], g_quark_from_string(e->change), e);
         break;
       }
 
@@ -570,7 +570,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
 
-        g_signal_emit(conn, connection_signals[MODE], 0, e);
+        g_signal_emit(conn, connection_signals[MODE], g_quark_from_string(e->change), e);
         break;
       }
 
@@ -583,7 +583,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
         if (json_object_has_member(json_reply, "container") && !json_object_get_null_member(json_reply, "container"))
           e->container = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "container"), conn);
 
-        g_signal_emit(conn, connection_signals[WINDOW], 0, e);
+        g_signal_emit(conn, connection_signals[WINDOW], g_quark_from_string(e->change), e);
         break;
       }
 
@@ -927,6 +927,7 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
 i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, GClosure *callback, GError **err) {
   GError *tmp_error = NULL;
   i3ipcCommandReply *cmd_reply;
+  gchar **event_details;
   i3ipcEvent flags = 0;
 
   g_return_val_if_fail(err == NULL || *err == NULL, NULL);
@@ -934,15 +935,17 @@ i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, 
   g_closure_ref(callback);
   g_closure_sink(callback);
 
-  if (strcmp(event, "workspace") == 0)
+  event_details = g_strsplit(event, "::", 0);
+
+  if (strcmp(event_details[0], "workspace") == 0)
     flags = I3IPC_EVENT_WORKSPACE;
-  else if (strcmp(event, "output") == 0)
+  else if (strcmp(event_details[0], "output") == 0)
     flags = I3IPC_EVENT_OUTPUT;
-  else if (strcmp(event, "window") == 0)
+  else if (strcmp(event_details[0], "window") == 0)
     flags = I3IPC_EVENT_WINDOW;
-  else if (strcmp(event, "mode") == 0)
+  else if (strcmp(event_details[0], "mode") == 0)
     flags = I3IPC_EVENT_MODE;
-  else if (strcmp(event, "barconfig_update") == 0)
+  else if (strcmp(event_details[0], "barconfig_update") == 0)
     flags = I3IPC_EVENT_BARCONFIG_UPDATE;
 
   if (flags) {
@@ -950,12 +953,15 @@ i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, 
     i3ipc_command_reply_free(cmd_reply);
 
     if (tmp_error != NULL) {
+      g_strfreev(event_details);
       g_propagate_error(err, tmp_error);
       return NULL;
     }
   }
 
   g_signal_connect_closure(self, event, callback, TRUE);
+
+  g_strfreev(event_details);
 
   return self;
 }
