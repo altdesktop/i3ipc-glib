@@ -71,6 +71,7 @@ struct _i3ipcConPrivate {
   gint window;
   gboolean urgent;
   gboolean focused;
+  gchar *type;
 
   i3ipcConnection *conn;
   i3ipcRect *rect;
@@ -93,6 +94,7 @@ enum {
   PROP_WINDOW,
   PROP_URGENT,
   PROP_FOCUSED,
+  PROP_TYPE,
 
   PROP_RECT,
   PROP_PARENT,
@@ -158,6 +160,10 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
       g_value_set_boolean(value, self->priv->focused);
       break;
 
+    case PROP_TYPE:
+      g_value_set_string(value, self->priv->type);
+      break;
+
     case PROP_RECT:
       g_value_set_boxed(value, self->priv->rect);
       break;
@@ -198,6 +204,7 @@ static void i3ipc_con_finalize(GObject *gobject) {
   g_free(self->priv->orientation);
   g_free(self->priv->name);
   g_free(self->priv->border);
+  g_free(self->priv->type);
 
   g_object_unref(self->priv->conn);
 
@@ -291,6 +298,12 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         "Whether this container is currently focused.",
         FALSE, /* default */
         G_PARAM_READABLE);
+  obj_properties[PROP_TYPE] =
+    g_param_spec_string("type",
+        "Con type",
+        "What type of container this is",
+        "", /* default */
+        G_PARAM_READABLE);
 
   obj_properties[PROP_PARENT] =
     g_param_spec_object("parent",
@@ -358,6 +371,7 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
   con->priv->current_border_width = json_object_get_int_member(data, "current_border_width");
   con->priv->border = g_strdup(json_object_get_string_member(data, "border"));
   con->priv->id = json_object_get_int_member(data, "id");
+  con->priv->type = g_strdup(json_object_get_string_member(data, "type"));
 
   con->priv->parent = parent;
 
