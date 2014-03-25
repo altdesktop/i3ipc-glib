@@ -22,6 +22,7 @@
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
 
+#include "i3ipc-connection.h"
 #include "i3ipc-con-private.h"
 
 /**
@@ -71,6 +72,7 @@ struct _i3ipcConPrivate {
   gboolean urgent;
   gboolean focused;
 
+  i3ipcConnection *conn;
   i3ipcRect *rect;
   GList *nodes;
   i3ipcCon *parent;
@@ -196,6 +198,8 @@ static void i3ipc_con_finalize(GObject *gobject) {
   g_free(self->priv->orientation);
   g_free(self->priv->name);
   g_free(self->priv->border);
+
+  g_object_unref(self->priv->conn);
 
   if (self->priv->nodes)
     g_list_free_full(self->priv->nodes, i3ipc_con_list_free_func);
@@ -328,14 +332,17 @@ static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode 
   i3ipcCon *parent = I3IPC_CON(user_data);
   JsonObject *data = json_node_get_object(element_node);
 
-  i3ipcCon *con = i3ipc_con_new(parent, data);
+  i3ipcCon *con = i3ipc_con_new(parent, data, parent->priv->conn);
 
   parent->priv->nodes = g_list_append(parent->priv->nodes, con);
 }
 
-i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data) {
+i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *conn) {
   i3ipcCon *con;
   con = g_object_new(I3IPC_TYPE_CON, NULL);
+
+  g_object_ref(conn);
+  con->priv->conn = conn;
 
   if (!json_object_get_null_member(data, "percent"))
     con->priv->percent = json_object_get_double_member(data, "percent");

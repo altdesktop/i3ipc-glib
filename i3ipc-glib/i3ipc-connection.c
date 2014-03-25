@@ -545,10 +545,10 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
 
         if (json_object_has_member(json_reply, "current") && !json_object_get_null_member(json_reply, "current"))
-          e->current = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "current"));
+          e->current = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "current"), conn);
 
         if (json_object_has_member(json_reply, "old") && !json_object_get_null_member(json_reply, "old"))
-          e->old = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "old"));
+          e->old = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "old"), conn);
 
         g_signal_emit(conn, connection_signals[WORKSPACE], 0, e);
         break;
@@ -581,7 +581,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
         e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
 
         if (json_object_has_member(json_reply, "container") && !json_object_get_null_member(json_reply, "container"))
-          e->container = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "container"));
+          e->container = i3ipc_con_new(NULL, json_object_get_object_member(json_reply, "container"), conn);
 
         g_signal_emit(conn, connection_signals[WINDOW], 0, e);
         break;
@@ -1188,7 +1188,7 @@ i3ipcCon *i3ipc_connection_get_tree(i3ipcConnection *self, GError **err) {
     return NULL;
   }
 
-  retval = i3ipc_con_new(NULL, json_node_get_object(json_parser_get_root(parser)));
+  retval = i3ipc_con_new(NULL, json_node_get_object(json_parser_get_root(parser)), self);
 
   g_object_unref(parser);
   g_free(reply);

@@ -23,8 +23,9 @@
 #define __I3IPC_CON_PRIVATE_H__
 
 #include <json-glib/json-glib.h>
+#include "i3ipc-connection.h"
 #include "i3ipc-con.h"
 
-i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data);
+i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *conn);
 
 #endif /* __I3IPC_CON_PRIVATE_H__ */
