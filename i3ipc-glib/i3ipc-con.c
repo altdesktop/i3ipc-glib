@@ -477,3 +477,45 @@ void i3ipc_con_command(i3ipcCon *self, const gchar* command, GError **err) {
   g_free(reply);
   g_free(context_command);
 }
+
+static void i3ipc_con_collect_criterion_func(gpointer data, gpointer user_data) {
+  GString *criterion = user_data;
+  i3ipcCon *con = data;
+
+  g_string_append_printf(criterion, "[con_id=\"%d\"] ", con->priv->id);
+}
+
+/**
+ * i3ipc_con_command_children:
+ * @self: an #i3ipcCon
+ * @command: the command to execute on the con's nodes
+ * @err: (allow-none): the location of a GError or NULL
+ *
+ * Convenience function to execute a command in the context of the container's
+ * children (the immediate descendents will be selected by criteria)
+ *
+ */
+void i3ipc_con_command_children(i3ipcCon *self, const gchar* command, GError **err) {
+  guint len;
+  gchar *reply;
+  GError *tmp_error = NULL;
+
+  len = g_list_length(self->priv->nodes);
+
+  if (len == 0)
+    return;
+
+  GString *criterion = g_string_new("");
+
+  g_list_foreach(self->priv->nodes, i3ipc_con_collect_criterion_func, criterion);
+
+  g_string_append(criterion, command);
+
+  reply = i3ipc_connection_message(self->priv->conn, I3IPC_MESSAGE_TYPE_COMMAND, criterion->str, &tmp_error);
+
+  if (tmp_error != NULL)
+    g_propagate_error(err, tmp_error);
+
+  g_free(reply);
+  g_string_free(criterion, TRUE);
+}
