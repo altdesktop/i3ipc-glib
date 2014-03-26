@@ -10,6 +10,13 @@ i3ipc-GLib is a C library for controlling the window manager. This project is in
 
 The latest documentation can be found online [here](http://dubstepdish.com/i3ipc-glib).
 
+### Projects using i3ipc-GLib
+
+* [i3ipc-gjs](https://github.com/acrisci/i3ipc-gjs) - an improved JavaScript library to control i3wm.
+* [i3ipc-python](https://github.com/acrisci/i3ipc-python) - an improved Python library to control i3wm.
+* [i3ipc-lua](https://github.com/acrisci/i3ipc-lua) - an improved Lua library to control i3wm.
+* [j4status](https://github.com/sardemff7/j4status) - shows the focused window in the status line.
+
 ## Installation
 
 Building the library requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system). Install the project with:
