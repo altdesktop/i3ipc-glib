@@ -1,5 +1,19 @@
 # Changelog - i3ipc-GLib
 
+## Version 0.2.0
+
+This release contains features that make scripting more expressive and powerful and major bugfixes related to language bindings.
+
+* Bugfix: copy functions make deep copeies (fixes all gjs issues)
+* GLib required version reduced to 2.32 (builds on Debian Wheezy)
+* Added support for gtk-doc generation
+* Detailed ipc signals allow for event filtering based on change
+* con_command method - executes a command in the context of a container
+* con_command_children method - executes a command in the context of container child nodes
+* con_workspaces method - collects the workspaces of a tree
+* con_find_focused method - finds a focused container in a container
+* con_workspace method - finds the closest workspace
+
 ## Version 0.1.2
 
 This is a minor bugfix release.
