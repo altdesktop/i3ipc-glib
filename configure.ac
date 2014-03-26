@@ -1,6 +1,6 @@
 m4_define([i3ipc_major_version], [0])
 m4_define([i3ipc_minor_version], [2])
-m4_define([i3ipc_micro_version], [2])
+m4_define([i3ipc_micro_version], [0])
 
 m4_define([i3ipc_version], [i3ipc_major_version.i3ipc_minor_version.i3ipc_micro_version])
 
