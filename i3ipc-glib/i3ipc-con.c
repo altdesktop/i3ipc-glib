@@ -596,3 +596,22 @@ i3ipcCon *i3ipc_con_find_focused(i3ipcCon *self) {
 
   return retval;
 }
+
+/**
+ * i3ipc_con_workspace:
+ * @self: an #i3ipcCon
+ *
+ * Returns: (transfer none): The closest workspace con
+ */
+i3ipcCon *i3ipc_con_workspace(i3ipcCon *self) {
+  i3ipcCon *retval = self->priv->parent;
+
+  while (retval != NULL) {
+    if (g_strcmp0(retval->priv->type, "workspace") == 0)
+      break;
+
+    retval = retval->priv->parent;
+  }
+
+  return retval;
+}

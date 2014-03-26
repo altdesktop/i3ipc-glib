@@ -103,4 +103,6 @@ GList *i3ipc_con_workspaces(i3ipcCon *self);
 
 i3ipcCon *i3ipc_con_find_focused(i3ipcCon *self);
 
+i3ipcCon *i3ipc_con_workspace(i3ipcCon *self);
+
 #endif
