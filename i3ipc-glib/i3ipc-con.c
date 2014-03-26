@@ -492,13 +492,6 @@ void i3ipc_con_command(i3ipcCon *self, const gchar* command, GError **err) {
   g_free(context_command);
 }
 
-static void i3ipc_con_collect_criterion_func(gpointer data, gpointer user_data) {
-  GString *criterion = user_data;
-  i3ipcCon *con = data;
-
-  g_string_append_printf(criterion, "[con_id=\"%d\"] ", con->priv->id);
-}
-
 /**
  * i3ipc_con_command_children:
  * @self: an #i3ipcCon
@@ -512,6 +505,7 @@ static void i3ipc_con_collect_criterion_func(gpointer data, gpointer user_data) 
 void i3ipc_con_command_children(i3ipcCon *self, const gchar* command, GError **err) {
   guint len;
   gchar *reply;
+  GString *payload;
   GError *tmp_error = NULL;
 
   len = g_list_length(self->priv->nodes);
@@ -519,19 +513,18 @@ void i3ipc_con_command_children(i3ipcCon *self, const gchar* command, GError **e
   if (len == 0)
     return;
 
-  GString *criterion = g_string_new("");
+  payload = g_string_new("");
 
-  g_list_foreach(self->priv->nodes, i3ipc_con_collect_criterion_func, criterion);
+  for (gint i = 0; i < len; i += 1)
+    g_string_append_printf(payload, "[con_id=\"%d\"] %s; ", I3IPC_CON(g_list_nth_data(self->priv->nodes, i))->priv->id, command);
 
-  g_string_append(criterion, command);
-
-  reply = i3ipc_connection_message(self->priv->conn, I3IPC_MESSAGE_TYPE_COMMAND, criterion->str, &tmp_error);
+  reply = i3ipc_connection_message(self->priv->conn, I3IPC_MESSAGE_TYPE_COMMAND, payload->str, &tmp_error);
 
   if (tmp_error != NULL)
     g_propagate_error(err, tmp_error);
 
   g_free(reply);
-  g_string_free(criterion, TRUE);
+  g_string_free(payload, TRUE);
 }
 
 static void i3ipc_con_collect_workspaces_func(gpointer data, gpointer user_data) {
