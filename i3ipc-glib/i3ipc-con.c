@@ -453,6 +453,35 @@ GList *i3ipc_con_descendents(i3ipcCon *self) {
 }
 
 /**
+ * i3ipc_con_leaves:
+ * @self: an #i3ipcCon
+ *
+ * Finds the leaf descendent nodes of a given container excluding dock clients.
+ *
+ * Returns: (transfer container) (element-type i3ipcCon): a list of leaf descendent nodes
+ */
+GList *i3ipc_con_leaves(i3ipcCon *self) {
+  GList *descendents;
+  GList *retval = NULL;
+
+  descendents = i3ipc_con_descendents(self);
+  guint len = g_list_length(descendents);
+
+  for (gint i = 0; i < len; i += 1) {
+    i3ipcCon *con = I3IPC_CON(g_list_nth_data(descendents, i));
+
+    if (g_list_length(con->priv->nodes) == 0
+        && g_strcmp0(con->priv->type, "con") == 0
+        && g_strcmp0(con->priv->parent->priv->type, "dockarea") != 0)
+      retval = g_list_append(retval, con);
+  }
+
+  g_list_free(descendents);
+
+  return retval;
+}
+
+/**
  * i3ipc_con_get_name:
  * @self: an #i3ipcCon
  *
