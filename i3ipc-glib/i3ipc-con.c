@@ -215,6 +215,9 @@ static void i3ipc_con_finalize(GObject *gobject) {
 
   g_object_unref(self->priv->conn);
 
+  if (self->priv->parent)
+    g_object_unref(self->priv->parent);
+
   if (self->priv->nodes)
     g_list_free_full(self->priv->nodes, i3ipc_con_list_free_func);
 
@@ -394,7 +397,10 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
   con->priv->id = json_object_get_int_member(data, "id");
   con->priv->type = g_strdup(json_object_get_string_member(data, "type"));
 
-  con->priv->parent = parent;
+  if (parent) {
+    g_object_ref(parent);
+    con->priv->parent = parent;
+  }
 
   JsonObject *rect_data = json_object_get_object_member(data, "rect");
 
