@@ -1,5 +1,15 @@
 # Changelog - i3ipc-GLib
 
+## Version 0.3.0
+
+This release adds more useful container features for targetted use cases and minor bugfixes.
+
+* Implement con_find_named method - finds containers via regexp
+* Implement con_find_classed method - finds containers via regexp with WM_CLASS
+* Implement con_leaves method - finds top-level windows
+* Implement con window_class property - WM_CLASS as reported by the ipc
+* Bugfix: children cons keep a reference on their parent
+
 ## Version 0.2.0
 
 This release contains features that make scripting more expressive and powerful and major bugfixes related to language bindings.
