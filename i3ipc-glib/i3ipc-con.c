@@ -72,6 +72,7 @@ struct _i3ipcConPrivate {
   gboolean urgent;
   gboolean focused;
   gchar *type;
+  gchar *window_class;
 
   i3ipcConnection *conn;
   i3ipcRect *rect;
@@ -95,6 +96,7 @@ enum {
   PROP_URGENT,
   PROP_FOCUSED,
   PROP_TYPE,
+  PROP_WINDOW_CLASS,
 
   PROP_RECT,
   PROP_PARENT,
@@ -164,6 +166,10 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
       g_value_set_string(value, self->priv->type);
       break;
 
+    case PROP_WINDOW_CLASS:
+      g_value_set_string(value, self->priv->window_class);
+      break;
+
     case PROP_RECT:
       g_value_set_boxed(value, self->priv->rect);
       break;
@@ -205,6 +211,7 @@ static void i3ipc_con_finalize(GObject *gobject) {
   g_free(self->priv->name);
   g_free(self->priv->border);
   g_free(self->priv->type);
+  g_free(self->priv->window_class);
 
   g_object_unref(self->priv->conn);
 
@@ -305,6 +312,13 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         "", /* default */
         G_PARAM_READABLE);
 
+  obj_properties[PROP_WINDOW_CLASS] =
+    g_param_spec_string("window_class",
+        "Con window class",
+        "The class of the window according to WM_CLASS",
+        "", /* default */
+        G_PARAM_READABLE);
+
   obj_properties[PROP_PARENT] =
     g_param_spec_object("parent",
         "Con parent",
@@ -362,6 +376,13 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
 
   if (!json_object_get_null_member(data, "window"))
     con->priv->window = json_object_get_int_member(data, "window");
+
+  if (json_object_has_member(data, "window_properties")) {
+    JsonObject *window_properties = json_object_get_object_member(data, "window_properties");
+
+    if (json_object_has_member(window_properties, "class"))
+      con->priv->window_class = g_strdup(json_object_get_string_member(window_properties, "class"));
+  }
 
   con->priv->name = g_strdup(json_object_get_string_member(data, "name"));
   con->priv->focused = json_object_get_boolean_member(data, "focused");
