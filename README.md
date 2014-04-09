@@ -22,7 +22,7 @@ The latest documentation can be found online [here](http://dubstepdish.com/i3ipc
 Building the library requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system). Install the project with:
 
 ```shell
-./autogen.sh
+./autogen.sh # --prefix=/usr might be required
 make
 sudo make install
 ```
