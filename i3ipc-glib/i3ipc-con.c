@@ -698,6 +698,34 @@ i3ipcCon *i3ipc_con_find_focused(i3ipcCon *self) {
 }
 
 /**
+ * i3ipc_con_find_by_id:
+ * @self: an #i3ipcCon
+ * @con_id: the id of the con to find
+ *
+ * Returns: (transfer none): The con with the given con_id among this con's descendents
+ */
+i3ipcCon *i3ipc_con_find_by_id(i3ipcCon *self, const gint con_id) {
+  GList *descendents;
+  i3ipcCon *retval = NULL;
+
+  descendents = i3ipc_con_descendents(self);
+  guint len = g_list_length(descendents);
+
+  for (gint i = 0; i < len; i += 1) {
+    i3ipcCon *con = I3IPC_CON(g_list_nth_data(descendents, i));
+
+    if (con->priv->id == con_id) {
+      retval = con;
+      break;
+    }
+  }
+
+  g_list_free(descendents);
+
+  return retval;
+}
+
+/**
  * i3ipc_con_find_named:
  * @self: an #i3ipcCon
  * @pattern: a perl-compatible regular expression pattern
