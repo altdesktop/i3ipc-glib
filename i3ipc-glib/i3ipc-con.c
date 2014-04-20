@@ -77,6 +77,7 @@ struct _i3ipcConPrivate {
   i3ipcConnection *conn;
   i3ipcRect *rect;
   GList *nodes;
+  GList *floating_nodes;
   i3ipcCon *parent;
 };
 
@@ -101,6 +102,7 @@ enum {
   PROP_RECT,
   PROP_PARENT,
   PROP_NODES,
+  PROP_FLOATING_NODES,
 
   N_PROPERTIES
 };
@@ -182,6 +184,10 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
       g_value_set_pointer(value, self->priv->nodes);
       break;
 
+    case PROP_FLOATING_NODES:
+      g_value_set_pointer(value, self->priv->floating_nodes);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
       break;
@@ -220,6 +226,9 @@ static void i3ipc_con_finalize(GObject *gobject) {
 
   if (self->priv->nodes)
     g_list_free_full(self->priv->nodes, i3ipc_con_list_free_func);
+
+  if (self->priv->floating_nodes)
+    g_list_free_full(self->priv->floating_nodes, i3ipc_con_list_free_func);
 
   G_OBJECT_CLASS(i3ipc_con_parent_class)->finalize(gobject);
 }
@@ -346,6 +355,16 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
          "Con nodes",
          "The con's nodes",
          G_PARAM_READABLE);
+  /**
+   * i3ipcCon:floating-nodes: (type GList(i3ipcCon)):
+   *
+   * This property is a list of the con's floating nodes.
+   */
+  obj_properties[PROP_FLOATING_NODES] =
+     g_param_spec_pointer("floating-nodes",
+         "Con floating nodes",
+         "The con's floating nodes",
+         G_PARAM_READABLE);
 
   g_object_class_install_properties(gobject_class, N_PROPERTIES, obj_properties);
 
@@ -356,6 +375,7 @@ static void i3ipc_con_init(i3ipcCon *self) {
   self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self, I3IPC_TYPE_CON, i3ipcConPrivate);
   self->priv->rect = g_slice_new0(i3ipcRect);
   self->priv->nodes = NULL;
+  self->priv->floating_nodes = NULL;
 }
 
 static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode *element_node, gpointer user_data) {
@@ -365,6 +385,15 @@ static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode 
   i3ipcCon *con = i3ipc_con_new(parent, data, parent->priv->conn);
 
   parent->priv->nodes = g_list_append(parent->priv->nodes, con);
+}
+
+static void i3ipc_con_initialize_floating_nodes(JsonArray *array, guint index_, JsonNode *element_node, gpointer user_data) {
+  i3ipcCon *parent = I3IPC_CON(user_data);
+  JsonObject *data = json_node_get_object(element_node);
+
+  i3ipcCon *con = i3ipc_con_new(parent, data, parent->priv->conn);
+
+  parent->priv->floating_nodes = g_list_append(parent->priv->floating_nodes, con);
 }
 
 i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *conn) {
@@ -410,8 +439,10 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
   con->priv->rect->height = json_object_get_int_member(rect_data, "height");
 
   JsonArray *nodes_array = json_object_get_array_member(data, "nodes");
-
   json_array_foreach_element(nodes_array, i3ipc_con_initialize_nodes, con);
+
+  JsonArray *floating_nodes_array = json_object_get_array_member(data, "floating_nodes");
+  json_array_foreach_element(floating_nodes_array, i3ipc_con_initialize_floating_nodes, con);
 
   return con;
 }
@@ -424,6 +455,16 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
  */
 const GList *i3ipc_con_get_nodes(i3ipcCon *self) {
   return self->priv->nodes;
+}
+
+/**
+ * i3ipc_con_get_floating_nodes:
+ * @self: an #i3ipcCon
+ *
+ * Returns: (transfer none) (element-type i3ipcCon): A list of child floating nodes.
+ */
+const GList *i3ipc_con_get_floating_nodes(i3ipcCon *self) {
+  return self->priv->floating_nodes;
 }
 
 /**

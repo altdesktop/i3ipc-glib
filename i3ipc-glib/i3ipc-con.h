@@ -89,6 +89,8 @@ GType i3ipc_con_get_type(void);
 
 const GList *i3ipc_con_get_nodes(i3ipcCon *self);
 
+const GList *i3ipc_con_get_floating_nodes(i3ipcCon *self);
+
 i3ipcCon *i3ipc_con_root(i3ipcCon *self);
 
 GList *i3ipc_con_descendents(i3ipcCon *self);
