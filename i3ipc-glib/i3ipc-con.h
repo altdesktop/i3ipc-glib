@@ -109,6 +109,8 @@ i3ipcCon *i3ipc_con_find_focused(i3ipcCon *self);
 
 i3ipcCon *i3ipc_con_find_by_id(i3ipcCon *self, const gint con_id);
 
+i3ipcCon *i3ipc_con_find_by_window(i3ipcCon *self, const gint window_id);
+
 GList *i3ipc_con_find_named(i3ipcCon *self, const gchar *pattern, GError **err);
 
 GList *i3ipc_con_find_classed(i3ipcCon *self, const gchar *pattern, GError **err);
