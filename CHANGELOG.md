@@ -1,5 +1,17 @@
 # Changelog - i3ipc-GLib
 
+## Version 0.3.1
+
+This minor release includes bugfixes and compatability fixes with the latest stable version of i3. Some new methods and a property on the con object have been added as well.
+
+*This is the first version to distribute a debian package (others available by request)*
+
+* Bugfix: con methods collect floating descendents
+* Bugfix: support con "type" for i3 stable (member type has changed in dev version)
+* Implement con floating-nodes property
+* Implement con method find_by_id - finds a container with the i3 con id
+* Implement con method find_by_window - finds a container with xcb window id
+
 ## Version 0.3.0
 
 This release adds more useful container features for targetted use cases and minor bugfixes.
