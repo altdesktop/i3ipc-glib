@@ -424,7 +424,37 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
   con->priv->current_border_width = json_object_get_int_member(data, "current_border_width");
   con->priv->border = g_strdup(json_object_get_string_member(data, "border"));
   con->priv->id = json_object_get_int_member(data, "id");
-  con->priv->type = g_strdup(json_object_get_string_member(data, "type"));
+
+  JsonNode *con_type_node = json_object_get_member(data, "type");
+
+  /* XXX: In the development version, the "type" property is a string of the
+   * type, but in the current stable version (4.7.2) it is an integer as
+   * defined in i3's data header. When the next version comes out, the case
+   * where type is a number should be removed. */
+  if (json_node_get_value_type(con_type_node) == G_TYPE_STRING) {
+    con->priv->type = g_strdup(json_node_get_string(con_type_node));
+  } else {
+    int con_type_int = (int)json_node_get_int(con_type_node);
+    switch (con_type_int)
+    {
+      case 0:
+        con->priv->type = g_strdup("root");
+        break;
+      case 1:
+        con->priv->type = g_strdup("output");
+        break;
+      case 2:
+      case 3:
+        con->priv->type = g_strdup("con");
+        break;
+      case 4:
+        con->priv->type = g_strdup("workspace");
+        break;
+      case 5:
+        con->priv->type = g_strdup("dockarea");
+        break;
+    }
+  }
 
   if (parent) {
     g_object_ref(parent);
