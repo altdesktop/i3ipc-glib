@@ -1,3 +1,41 @@
+# Autotools
+/configure
+/stamp-h1
+/libtool
+/gtk-doc.make
+/**/Makefile
+/**/Makefile.in
+/aclocal.m4
+/autom4te.cache
+/config.h
+/config.h.in
+/config.log
+/config.status
+/build/ar-lib
+/build/compile
+/build/config.guess
+/build/config.sub
+/build/depcomp
+/build/install-sh
+/build/ltmain.sh
+/build/missing
+/build/autotools/libtool.m4
+/build/autotools/ltoptions.m4
+/build/autotools/ltsugar.m4
+/build/autotools/ltversion.m4
+/build/autotools/lt~obsolete.m4
+
+# Docs
+/build/autotools/gtk-doc.m4
+/doc/reference/html/**/*
+/doc/reference/xml/**/*
+/doc/reference/version.xml
+
+# Project-specific
+/i3ipc-glib/.deps/**/*
+/i3ipc-*.tar.gz
+/i3ipc-glib/i3ipc-glib.pc
+
 # ASD
 .flagged
 
