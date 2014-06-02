@@ -71,6 +71,7 @@ struct _i3ipcConnectionPrivate {
   gchar *socket_path;
   gboolean connected;
   GError *init_error;
+  GMainLoop *main_loop;
   GIOChannel *cmd_channel;
   GIOChannel *sub_channel;
 };
@@ -511,6 +512,10 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
   if (status == G_IO_STATUS_EOF) {
     g_signal_emit(conn, connection_signals[IPC_SHUTDOWN], 0);
+
+    if (conn->priv->main_loop != NULL)
+      i3ipc_connection_main_quit(conn);
+
     return FALSE;
   }
 
@@ -1461,4 +1466,31 @@ i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **
   g_free(reply);
 
   return retval;
+}
+
+/**
+ * i3ipc_connection_main:
+ * @self: An #i3ipcConnection
+ *
+ * A convenience function for scripts to run a main loop and wait for events.
+ * The main loop will terminate when the connection to the ipc is lost, such as
+ * when i3 shuts down or restarts.
+ */
+void i3ipc_connection_main(i3ipcConnection *self) {
+  self->priv->main_loop = g_main_loop_new(NULL, FALSE);
+  g_main_loop_run(self->priv->main_loop);
+  g_main_loop_unref(self->priv->main_loop);
+  self->priv->main_loop = NULL;
+}
+
+/**
+ * i3ipc_connection_main_quit:
+ * @self: An #i3ipcConnection
+ *
+ * A convenience function for scripts to quit a main loop that was started with
+ * i3ipc_connection_main().
+ */
+void i3ipc_connection_main_quit(i3ipcConnection *self) {
+  g_return_if_fail(self->priv->main_loop != NULL);
+  g_main_loop_quit(self->priv->main_loop);
 }

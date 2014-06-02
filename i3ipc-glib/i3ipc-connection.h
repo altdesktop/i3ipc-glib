@@ -117,4 +117,8 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, cons
 
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err);
 
+void i3ipc_connection_main(i3ipcConnection *self);
+
+void i3ipc_connection_main_quit(i3ipcConnection *self);
+
 #endif
