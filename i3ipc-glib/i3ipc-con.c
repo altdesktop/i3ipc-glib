@@ -71,6 +71,7 @@ struct _i3ipcConPrivate {
   gint window;
   gboolean urgent;
   gboolean focused;
+  gboolean fullscreen_mode;
   gchar *type;
   gchar *window_class;
 
@@ -96,6 +97,7 @@ enum {
   PROP_WINDOW,
   PROP_URGENT,
   PROP_FOCUSED,
+  PROP_FULLSCREEN_MODE,
   PROP_TYPE,
   PROP_WINDOW_CLASS,
 
@@ -162,6 +164,10 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
 
     case PROP_FOCUSED:
       g_value_set_boolean(value, self->priv->focused);
+      break;
+
+    case PROP_FULLSCREEN_MODE:
+      g_value_set_boolean(value, self->priv->fullscreen_mode);
       break;
 
     case PROP_TYPE:
@@ -317,6 +323,14 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         "Whether this container is currently focused.",
         FALSE, /* default */
         G_PARAM_READABLE);
+
+  obj_properties[PROP_FULLSCREEN_MODE] =
+    g_param_spec_boolean("fullscreen-mode",
+        "Con fullscreen mode",
+        "Whether this container is currently in fullscreen mode.",
+        FALSE, /* default */
+        G_PARAM_READABLE);
+
   obj_properties[PROP_TYPE] =
     g_param_spec_string("type",
         "Con type",
@@ -418,6 +432,7 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
 
   con->priv->name = g_strdup(json_object_get_string_member(data, "name"));
   con->priv->focused = json_object_get_boolean_member(data, "focused");
+  con->priv->fullscreen_mode = json_object_get_boolean_member(data, "fullscreen_mode");
   con->priv->urgent = json_object_get_boolean_member(data, "urgent");
   con->priv->layout = g_strdup(json_object_get_string_member(data, "layout"));
   con->priv->orientation = g_strdup(json_object_get_string_member(data, "orientation"));
