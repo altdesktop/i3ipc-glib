@@ -116,6 +116,7 @@ GType i3ipc_version_reply_get_type(void);
  * @workspace_buttons:
  * @binding_mode_indicator:
  * @verbose:
+ * @strip_workspace_numbers:
  * @colors: (element-type utf8 utf8):
  *
  * The #i3ipcBarConfigReply is the primary structure for accessing the reply of
@@ -131,6 +132,7 @@ struct _i3ipcBarConfigReply
   gboolean workspace_buttons;
   gboolean binding_mode_indicator;
   gboolean verbose;
+  gboolean strip_workspace_numbers;
   GHashTable *colors;
 };
 

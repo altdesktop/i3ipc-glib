@@ -1387,6 +1387,10 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, cons
   retval->verbose = json_reader_get_boolean_value(reader);
   json_reader_end_member(reader);
 
+  json_reader_read_member(reader, "strip_workspace_numbers");
+  retval->strip_workspace_numbers = json_reader_get_boolean_value(reader);
+  json_reader_end_member(reader);
+
   json_reader_read_member(reader, "colors");
 
   int num_colors = json_reader_count_members(reader);
