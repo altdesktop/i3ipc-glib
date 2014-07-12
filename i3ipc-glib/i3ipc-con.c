@@ -895,6 +895,47 @@ GList *i3ipc_con_find_classed(i3ipcCon *self, const gchar *pattern, GError **err
 }
 
 /**
+ * i3ipc_con_find_marked:
+ * @self: an #i3ipcCon
+ * @pattern: a perl-compatible regular expression pattern
+ * @err: (allow-none): return location for a GError or NULL
+ *
+ * Returns: (transfer container) (element-type i3ipcCon): A list of descendent
+ * Cons which have the mark that matches the pattern
+ */
+GList *i3ipc_con_find_marked(i3ipcCon *self, const gchar *pattern, GError **err) {
+  GList *descendents;
+  GRegex *regex;
+  GList *retval = NULL;
+  GError *tmp_error = NULL;
+
+  g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+  regex = g_regex_new(pattern, 0, 0, &tmp_error);
+
+  if (tmp_error != NULL) {
+    g_propagate_error(err, tmp_error);
+    return NULL;
+  }
+
+  descendents = i3ipc_con_descendents(self);
+  guint len = g_list_length(descendents);
+
+  for (gint i = 0; i < len; i += 1) {
+    i3ipcCon *con = I3IPC_CON(g_list_nth_data(descendents, i));
+
+    if (con->priv->mark && g_regex_match(regex, con->priv->mark, 0, NULL))
+      retval = g_list_append(retval, con);
+  }
+
+  g_list_free(descendents);
+  g_regex_unref(regex);
+
+  return retval;
+
+}
+
+/**
  * i3ipc_con_workspace:
  * @self: an #i3ipcCon
  *
