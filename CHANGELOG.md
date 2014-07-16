@@ -1,5 +1,14 @@
 # Changelog - i3ipc-GLib
 
+## Version 0.4.0
+
+This release adds some missing properties on the container and an abstraction to the GLib main loop.
+
+* Add the con "mark" property
+* Add the con "fullscreen_mode" property
+* Implement con method `find_marked` - finds containers that have a mark that matches a pattern
+* Add the connection `main` and `main_quit` methods for scripting
+
 ## Version 0.3.1
 
 This minor release includes bugfixes and compatability fixes with the latest stable version of i3. Some new methods and a property on the con object have been added as well.
