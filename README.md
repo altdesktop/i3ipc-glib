@@ -19,6 +19,8 @@ The latest documentation can be found online [here](http://dubstepdish.com/i3ipc
 
 ## Installation
 
+Check the [releases](https://github.com/acrisci/i3ipc-glib/releases) page or your package manager for a package for your distro. Additional packages are available upon request.
+
 Building the library requires [autotools](https://en.wikipedia.org/wiki/GNU_build_system). Install the project with:
 
 ```shell
@@ -31,6 +33,7 @@ The following packages are required for building i3-ipc:
 
 * libxcb and xcb-proto
 * glib >= 2.32
+* gobject-introspection (optional for bindings)
 * json-glib >= 0.14
 
 ## Example
