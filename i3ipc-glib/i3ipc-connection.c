@@ -1021,7 +1021,9 @@ GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err) {
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "num");
-    workspace->num = json_reader_get_int_value(reader);
+    workspace->num = (json_reader_get_null_value(reader) ?
+        -1 :
+        json_reader_get_int_value(reader));
     json_reader_end_member(reader);
 
     json_reader_read_member(reader, "visible");
