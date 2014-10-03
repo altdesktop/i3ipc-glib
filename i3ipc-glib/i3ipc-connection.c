@@ -60,6 +60,7 @@ enum {
   MODE,
   WINDOW,
   BARCONFIG_UPDATE,
+  BINDING,
   IPC_SHUTDOWN,
   LAST_SIGNAL
 };
@@ -284,6 +285,26 @@ static void i3ipc_connection_class_init (i3ipcConnectionClass *klass) {
       G_TYPE_NONE,                           /* return_type */
       1,
       I3IPC_TYPE_BARCONFIG_UPDATE_EVENT);    /* n_params */
+
+  /**
+   * i3ipcConnection::binding:
+   * @self: the #i3ipcConnection on which the signal was emitted
+   * @e: the binding event object
+   *
+   * Sent when a binding was triggered with the keyboard or mouse because of
+   * some user input.
+   */
+  connection_signals[BINDING] = g_signal_new(
+      "binding",                             /* signal_name */
+      I3IPC_TYPE_CONNECTION,                 /* itype */
+      G_SIGNAL_RUN_FIRST | G_SIGNAL_DETAILED,/* signal_flags */
+      0,                                     /* class_offset */
+      NULL,                                  /* accumulator */
+      NULL,                                  /* accu_data */
+      g_cclosure_marshal_VOID__BOXED,        /* c_marshaller */
+      G_TYPE_NONE,                           /* return_type */
+      1,                                     /* n_params */
+      I3IPC_TYPE_BINDING_EVENT);
 
   /**
    * i3ipcConnection::ipc_shutdown:
@@ -603,6 +624,29 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
         g_signal_emit(conn, connection_signals[BARCONFIG_UPDATE], 0, e);
         break;
       }
+    case I3IPC_EVENT_BINDING:
+      {
+        i3ipcBindingEvent *e = g_slice_new0(i3ipcBindingEvent);
+
+        e->change = g_strdup(json_object_get_string_member(json_reply, "change"));
+
+        JsonObject *json_binding_info = json_object_get_object_member(json_reply, "binding");
+        e->binding = g_slice_new0(i3ipcBindingInfo);
+        e->binding->command = g_strdup(json_object_get_string_member(json_binding_info, "command"));
+        e->binding->input_code = json_object_get_int_member(json_binding_info, "input_code");
+        e->binding->input_type = g_strdup(json_object_get_string_member(json_binding_info, "input_type"));
+        e->binding->symbol = g_strdup(json_object_get_string_member(json_binding_info, "symbol"));
+
+        JsonArray *mods = json_object_get_array_member(json_binding_info, "mods");
+        gint mods_len = json_array_get_length(mods);
+
+        for (int i = 0; i < mods_len; i += 1) {
+          e->binding->mods = g_slist_append(e->binding->mods, g_strdup(json_array_get_string_element(mods, i)));
+        }
+
+        g_signal_emit(conn, connection_signals[BINDING], g_quark_from_string(e->change), e);
+        break;
+      }
 
     default:
       g_warning("got unknown event\n");
@@ -869,6 +913,9 @@ i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent 
   if (events & (I3IPC_EVENT_WORKSPACE & ~self->priv->subscriptions))
     json_builder_add_string_value(builder, "workspace");
 
+  if (events & (I3IPC_EVENT_BINDING & ~self->priv->subscriptions))
+    json_builder_add_string_value(builder, "binding");
+
   json_builder_end_array(builder);
 
   generator = json_generator_new();
@@ -952,6 +999,8 @@ i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, 
     flags = I3IPC_EVENT_MODE;
   else if (strcmp(event_details[0], "barconfig_update") == 0)
     flags = I3IPC_EVENT_BARCONFIG_UPDATE;
+  else if (strcmp(event_details[0], "binding") == 0)
+    flags = I3IPC_EVENT_BINDING;
 
   if (flags) {
     cmd_reply = i3ipc_connection_subscribe(self, flags, &tmp_error);

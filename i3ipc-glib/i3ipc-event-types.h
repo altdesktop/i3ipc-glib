@@ -30,11 +30,15 @@
 #define I3IPC_TYPE_GENERIC_EVENT          (i3ipc_generic_event_get_type ())
 #define I3IPC_TYPE_WINDOW_EVENT           (i3ipc_window_event_get_type ())
 #define I3IPC_TYPE_BARCONFIG_UPDATE_EVENT (i3ipc_barconfig_update_event_get_type ())
+#define I3IPC_TYPE_BINDING_INFO           (i3ipc_binding_info_get_type ())
+#define I3IPC_TYPE_BINDING_EVENT          (i3ipc_binding_event_get_type ())
 
 typedef struct _i3ipcWorkspaceEvent       i3ipcWorkspaceEvent;
 typedef struct _i3ipcGenericEvent         i3ipcGenericEvent;
 typedef struct _i3ipcWindowEvent          i3ipcWindowEvent;
 typedef struct _i3ipcBarconfigUpdateEvent i3ipcBarconfigUpdateEvent;
+typedef struct _i3ipcBindingInfo          i3ipcBindingInfo;
+typedef struct _i3ipcBindingEvent         i3ipcBindingEvent;
 
 /**
  * i3ipcEvent:
@@ -43,6 +47,7 @@ typedef struct _i3ipcBarconfigUpdateEvent i3ipcBarconfigUpdateEvent;
  * @I3IPC_EVENT_MODE:
  * @I3IPC_EVENT_WINDOW:
  * @I3IPC_EVENT_BARCONFIG_UPDATE:
+ * @I3IPC_EVENT_BINDING:
  *
  * Event enumeration for #i3ipcConnection
  *
@@ -54,6 +59,7 @@ typedef enum { /*< underscore_name=i3ipc_event >*/
   I3IPC_EVENT_MODE =              (1 << 2),
   I3IPC_EVENT_WINDOW =            (1 << 3),
   I3IPC_EVENT_BARCONFIG_UPDATE =  (1 << 4),
+  I3IPC_EVENT_BINDING =           (1 << 5),
 } i3ipcEvent;
 
 /**
@@ -126,5 +132,46 @@ struct _i3ipcBarconfigUpdateEvent
 i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdateEvent *event);
 void i3ipc_barconfig_update_event_free(i3ipcBarconfigUpdateEvent *event);
 GType i3ipc_barconfig_update_event_get_type(void);
+
+/**
+ * i3ipcBindingInfo:
+ * @command: The i3 command that is configured to run for this binding.
+ * @mods: (element-type utf8): The modifier keys that were configured with this binding.
+ * @input_code: If the binding was configured with bindcode, this will be the
+ * key code that was given for the binding. If the binding is a mouse binding,
+ * it will be the number of the mouse button that was pressed. Otherwise it
+ * will be 0.
+ * @symbol: If this is a keyboard binding that was configured with bindsym,
+ * this field will contain the given symbol.
+ * @input_type: This will be "keyboard" or "mouse" depending on whether or not
+ * this was a keyboard or a mouse binding.
+ */
+struct _i3ipcBindingInfo
+{
+  gchar *command;
+  GSList *mods;
+  gint input_code;
+  gchar *symbol;
+  gchar *input_type;
+};
+
+i3ipcBindingInfo *i3ipc_binding_info_copy(i3ipcBindingInfo *info);
+void i3ipc_binding_info_free(i3ipcBindingInfo *info);
+GType i3ipc_binding_info_get_type(void);
+
+/**
+ * i3ipcBindingEvent:
+ * @binding: A #i3ipcBindingInfo that contains info about this binding
+ * @change: The type of binding event that was triggered (right now, only "run").
+ */
+struct _i3ipcBindingEvent
+{
+  i3ipcBindingInfo *binding;
+  gchar *change;
+};
+
+i3ipcBindingEvent *i3ipc_binding_event_copy(i3ipcBindingEvent *event);
+void i3ipc_binding_event_free(i3ipcBindingEvent *event);
+GType i3ipc_binding_event_get_type(void);
 
 #endif /* __I3IPC_EVENT_TYPES_H__ */

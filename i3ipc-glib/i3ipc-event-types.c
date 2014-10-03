@@ -203,3 +203,89 @@ void i3ipc_barconfig_update_event_free(i3ipcBarconfigUpdateEvent *event) {
 
 G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
     i3ipc_barconfig_update_event_copy, i3ipc_barconfig_update_event_free);
+
+/**
+ * i3ipc_binding_info_copy:
+ * @info: a #i3ipcBindingInfo
+ *
+ * Creates a dynamically allocated i3ipc binding info container as a copy of
+ * @info.
+ * Returns: (transfer full): a newly-allocated copy of @info
+ */
+i3ipcBindingInfo *i3ipc_binding_info_copy(i3ipcBindingInfo *info) {
+  i3ipcBindingInfo *retval;
+
+  g_return_val_if_fail(info != NULL, NULL);
+
+  retval = g_slice_new0(i3ipcBindingInfo);
+  *retval = *info;
+
+  retval->command = g_strdup(info->command);
+  retval->symbol = g_strdup(info->symbol);
+  retval->input_type = g_strdup(info->input_type);
+  retval->mods = g_slist_copy_deep(info->mods, (GCopyFunc)g_strdup, NULL);
+
+  return retval;
+}
+
+/**
+ * i3ipc_binding_info_free:
+ * @info: (allow-none): a #i3ipcBindingInfo
+ *
+ * Frees @info. If @info is %NULL, it simply returns.
+ */
+void i3ipc_binding_info_free(i3ipcBindingInfo *info) {
+  if (!info)
+    return;
+
+  g_free(info->command);
+  g_free(info->input_type);
+  g_free(info->symbol);
+  g_slist_free_full(info->mods, g_free);
+
+  g_slice_free(i3ipcBindingInfo, info);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcBindingInfo, i3ipc_binding_info,
+    i3ipc_binding_info_copy, i3ipc_binding_info_free);
+
+/**
+ * i3ipc_binding_event_copy:
+ * @event: a #i3ipcBindingEvent
+ *
+ * Creates a dynamically allocated i3ipc binding event data container as a copy
+ * of @event.
+ * Returns: (transfer full): a newly-allocated copy of @event
+ */
+i3ipcBindingEvent *i3ipc_binding_event_copy(i3ipcBindingEvent *event) {
+  i3ipcBindingEvent *retval;
+
+  g_return_val_if_fail(event != NULL, NULL);
+
+  retval = g_slice_new0(i3ipcBindingEvent);
+  *retval = *event;
+
+  retval->binding = i3ipc_binding_info_copy(event->binding);
+  retval->change = g_strdup(event->change);
+
+  return retval;
+}
+
+/**
+ * i3ipc_binding_event_free:
+ * @event: (allow-none): a #i3ipcBindingEvent
+ *
+ * Frees @event. If @event is %NULL, it simply returns.
+ */
+void i3ipc_binding_event_free(i3ipcBindingEvent *event) {
+  if (!event)
+    return;
+
+  g_free(event->change);
+  i3ipc_binding_info_free(event->binding);
+
+  g_slice_free(i3ipcBindingEvent, event);
+}
+
+G_DEFINE_BOXED_TYPE(i3ipcBindingEvent, i3ipc_binding_event,
+    i3ipc_binding_event_copy, i3ipc_binding_event_free);
