@@ -33,8 +33,14 @@
 
 # Project-specific
 /i3ipc-glib/.deps/**/*
+/i3ipc-glib/.libs/**/*
 /i3ipc-*.tar.gz
+/i3ipc-glib/i3ipc-glib-1.0.pc
 /i3ipc-glib/i3ipc-glib.pc
+/i3ipc-glib/i3ipc-1.0.gir
+/i3ipc-glib/i3ipc-1.0.typelib
+/i3ipc-glib/stamp-enum-types
+/i3ipc-glib/i3ipc-enum-types.[ch]
 
 # ASD
 .flagged
@@ -48,6 +54,8 @@
 .clang_complete
 
 # Object files
+*.la
+*.lo
 *.o
 *.ko
 *.obj
