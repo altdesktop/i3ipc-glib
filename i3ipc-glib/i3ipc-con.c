@@ -571,7 +571,8 @@ static void i3ipc_con_collect_descendents_func(gpointer data, gpointer user_data
 GList *i3ipc_con_descendents(i3ipcCon *self) {
   GList *retval;
 
-  if (!self->priv->nodes)
+  /* if the con is a leaf, there is nothing to do */
+  if (!self->priv->nodes && !self->priv->floating_nodes)
     return NULL;
 
   /* the list has to have a first element for some reason. */
