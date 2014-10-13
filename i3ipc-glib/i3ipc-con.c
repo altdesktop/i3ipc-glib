@@ -954,3 +954,57 @@ i3ipcCon *i3ipc_con_workspace(i3ipcCon *self) {
 
   return retval;
 }
+
+/**
+ * i3ipc_con_scratchpad:
+ * @self: an #i3ipcCon
+ *
+ * Returns: (transfer none): The scratchpad workspace con
+ */
+i3ipcCon *i3ipc_con_scratchpad(i3ipcCon *self) {
+  i3ipcCon *retval = NULL;
+  /* start from the root */
+  i3ipcCon *root = i3ipc_con_root(self);
+
+  guint len = g_list_length(root->priv->nodes);
+
+  /* first look for the internal "__i3" con */
+  i3ipcCon *i3con = NULL;
+
+  for (gint i = 0; i < len; i += 1) {
+    i3ipcCon *con = I3IPC_CON(g_list_nth_data(root->priv->nodes, i));
+
+    if (g_strcmp0(con->priv->name, "__i3") == 0) {
+      i3con = con;
+      break;
+    }
+  }
+
+  /* next we need to find the content con */
+  i3ipcCon *i3con_content = NULL;
+
+  if (i3con != NULL) {
+    len = g_list_length(i3con->priv->nodes);
+    for (gint i = 0; i < len; i += 1) {
+      i3ipcCon *con = I3IPC_CON(g_list_nth_data(i3con->priv->nodes, i));
+      if (g_strcmp0(con->priv->name, "content") == 0) {
+        i3con_content = con;
+        break;
+      }
+    }
+  }
+
+  /* the scratchpad is within the this content con */
+  if (i3con_content != NULL) {
+    len = g_list_length(i3con_content->priv->nodes);
+    for (gint i = 0; i < len; i += 1) {
+      i3ipcCon *con = I3IPC_CON(g_list_nth_data(i3con_content->priv->nodes, i));
+      if (g_strcmp0(con->priv->name, "__i3_scratch") == 0) {
+        retval = con;
+        break;
+      }
+    }
+  }
+
+  return retval;
+}
