@@ -1,5 +1,13 @@
 # Changelog - i3ipc-GLib
 
+## Version 0.5.0
+
+This release adds the new `binding` event on the i3ipcConnection and some other bugfixes and features.
+
+* Add the `binding::run` event. This event is triggered when bindings run because of some user action.
+* Add the con `scratchpad` method. This method finds the i3 scratchpad workspace container.
+* Bugfix: fix bad leaf check in the con `descendents` method that would cause it to ignore some floating nodes.
+
 ## Version 0.4.0
 
 This release adds some missing properties on the container and an abstraction to the GLib main loop.
