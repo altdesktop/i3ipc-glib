@@ -26,9 +26,16 @@
 
 /**
  * SECTION: i3ipc-con
- * @short_description: A representation of an i3 window container.
+ * @short_description: A node in the i3 window container tree, including
+ * outputs, workspaces, split containers, and top-level windows (leaves).
  *
- * #i3ipcCon is a class to model a node in the i3 window container tree.
+ * #i3ipcCon is a node in the i3 window container tree. Cons are created by the
+ * #i3ipcConnection for queries and on events. This class contains properties
+ * of the window in the i3 tree. Containers include outputs, workspaces, split
+ * containers, and top-level windows (leaves). You can use the class methods to
+ * query containers within the given container based on certain window
+ * properties, retrieve all the leaves under the container, or execute commands
+ * in the context of the container.
  */
 
 #define I3IPC_TYPE_CON             (i3ipc_con_get_type ())

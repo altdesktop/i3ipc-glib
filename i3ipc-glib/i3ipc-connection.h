@@ -32,9 +32,13 @@
 
 /**
  * SECTION: i3ipc-connection
- * @short_description: A connection to the i3 IPC.
+ * @short_description: A connection to the i3 ipc to query i3 for the state of
+ * containers and to subscribe to window manager events.
  *
- * The #i3ipcConnection is a class to send messages to i3.
+ * Use this class to query information from the window manager about the state
+ * of the workspaces, windows, etc. You can also subscribe to events such as
+ * when certain window or workspace properties change.
+ *
  */
 
 #define I3IPC_TYPE_CONNECTION             (i3ipc_connection_get_type ())
