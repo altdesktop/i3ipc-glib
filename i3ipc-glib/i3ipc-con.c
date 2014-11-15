@@ -80,6 +80,7 @@ struct _i3ipcConPrivate {
   i3ipcRect *rect;
   GList *nodes;
   GList *floating_nodes;
+  GList *focus;
   i3ipcCon *parent;
 };
 
@@ -107,6 +108,7 @@ enum {
   PROP_PARENT,
   PROP_NODES,
   PROP_FLOATING_NODES,
+  PROP_FOCUS,
 
   N_PROPERTIES
 };
@@ -200,6 +202,10 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
       g_value_set_pointer(value, self->priv->floating_nodes);
       break;
 
+    case PROP_FOCUS:
+      g_value_set_pointer(value, self->priv->focus);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
       break;
@@ -242,6 +248,9 @@ static void i3ipc_con_finalize(GObject *gobject) {
 
   if (self->priv->floating_nodes)
     g_list_free_full(self->priv->floating_nodes, i3ipc_con_list_free_func);
+
+  if (self->priv->focus)
+    g_list_free(self->priv->focus);
 
   G_OBJECT_CLASS(i3ipc_con_parent_class)->finalize(gobject);
 }
@@ -394,6 +403,20 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
          "The con's floating nodes",
          G_PARAM_READABLE);
 
+  /**
+   * i3ipcCon:focus: (type GList(gint)):
+   *
+   * This property is a list of con ids that represents the focus stack of
+   * child nodes within this con. The top id in this list is the focused or
+   * focused-inactive con within this container.
+   */
+  obj_properties[PROP_FOCUS] =
+     g_param_spec_pointer(
+         "focus",
+         "Con focus",
+         "A list of con ids that represents the focus stack of child nodes within this con. The top id in this list is the focused or focused-inactive con within this container",
+         G_PARAM_READABLE);
+
   g_object_class_install_properties(gobject_class, N_PROPERTIES, obj_properties);
 
   g_type_class_add_private(klass, sizeof(i3ipcConPrivate));
@@ -404,6 +427,7 @@ static void i3ipc_con_init(i3ipcCon *self) {
   self->priv->rect = g_slice_new0(i3ipcRect);
   self->priv->nodes = NULL;
   self->priv->floating_nodes = NULL;
+  self->priv->focus = NULL;
 }
 
 static void i3ipc_con_initialize_nodes(JsonArray *array, guint index_, JsonNode *element_node, gpointer user_data) {
@@ -506,6 +530,12 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
 
   JsonArray *floating_nodes_array = json_object_get_array_member(data, "floating_nodes");
   json_array_foreach_element(floating_nodes_array, i3ipc_con_initialize_floating_nodes, con);
+
+  JsonArray *focus_array = json_object_get_array_member(data, "focus");
+  guint len = json_array_get_length(focus_array);
+  for (int i = 0; i < len; i += 1) {
+    con->priv->focus = g_list_append(con->priv->focus, GINT_TO_POINTER(json_array_get_int_element(focus_array, i)));
+  }
 
   return con;
 }
