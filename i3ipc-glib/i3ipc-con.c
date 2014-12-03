@@ -78,6 +78,7 @@ struct _i3ipcConPrivate {
 
   i3ipcConnection *conn;
   i3ipcRect *rect;
+  i3ipcRect *deco_rect;
   GList *nodes;
   GList *floating_nodes;
   GList *focus;
@@ -105,6 +106,7 @@ enum {
   PROP_MARK,
 
   PROP_RECT,
+  PROP_DECO_RECT,
   PROP_PARENT,
   PROP_NODES,
   PROP_FLOATING_NODES,
@@ -190,6 +192,10 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
       g_value_set_boxed(value, self->priv->rect);
       break;
 
+    case PROP_DECO_RECT:
+      g_value_set_boxed(value, self->priv->deco_rect);
+      break;
+
     case PROP_PARENT:
       g_value_set_object(value, self->priv->parent);
       break;
@@ -218,6 +224,7 @@ static void i3ipc_con_dispose(GObject *gobject) {
   self->priv->parent = NULL;
 
   self->priv->rect = (i3ipc_rect_free(self->priv->rect), NULL);
+  self->priv->deco_rect = (i3ipc_rect_free(self->priv->deco_rect), NULL);
 
   G_OBJECT_CLASS(i3ipc_con_parent_class)->dispose(gobject);
 }
@@ -382,6 +389,13 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         I3IPC_TYPE_RECT,
         G_PARAM_READABLE);
 
+  obj_properties[PROP_DECO_RECT] =
+    g_param_spec_boxed("deco_rect",
+        "Con deco rect",
+        "The con's deco rect",
+        I3IPC_TYPE_RECT,
+        G_PARAM_READABLE);
+
   /**
    * i3ipcCon:nodes: (type GList(i3ipcCon)):
    *
@@ -425,6 +439,7 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
 static void i3ipc_con_init(i3ipcCon *self) {
   self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self, I3IPC_TYPE_CON, i3ipcConPrivate);
   self->priv->rect = g_slice_new0(i3ipcRect);
+  self->priv->deco_rect = g_slice_new0(i3ipcRect);
   self->priv->nodes = NULL;
   self->priv->floating_nodes = NULL;
   self->priv->focus = NULL;
@@ -524,6 +539,15 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
   con->priv->rect->y = json_object_get_int_member(rect_data, "y");
   con->priv->rect->width = json_object_get_int_member(rect_data, "width");
   con->priv->rect->height = json_object_get_int_member(rect_data, "height");
+
+  if (json_object_has_member(data, "deco_rect")) {
+    JsonObject *deco_rect_data = json_object_get_object_member(data, "deco_rect");
+
+    con->priv->deco_rect->x = json_object_get_int_member(deco_rect_data, "x");
+    con->priv->deco_rect->y = json_object_get_int_member(deco_rect_data, "y");
+    con->priv->deco_rect->width = json_object_get_int_member(deco_rect_data, "width");
+    con->priv->deco_rect->height = json_object_get_int_member(deco_rect_data, "height");
+  }
 
   JsonArray *nodes_array = json_object_get_array_member(data, "nodes");
   json_array_foreach_element(nodes_array, i3ipc_con_initialize_nodes, con);
