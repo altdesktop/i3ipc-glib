@@ -1,5 +1,12 @@
 # Changelog - i3ipc-GLib
 
+## Version 0.6.0
+
+This release adds two new container properties.
+
+* con "focus" property is a list of con ids that represents the focus stack of child nodes.
+* con "deco_rect" property is the coordinates of the window decoration inside its container.
+
 ## Version 0.5.0
 
 This release adds the new `binding` event on the i3ipcConnection and some other bugfixes and features.
