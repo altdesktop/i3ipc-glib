@@ -1,0 +1,13 @@
+Source: libi3ipc-glib
+section: utils
+Priority: optional
+Maintainer: Alexandre Acebedo <alexandre.acebedo@gmail.com>
+Build-Depends: debhelper (>= 9), libjson-glib-dev, libxcb1-dev, gobject-introspection, gtk-doc-tools, libglib2.0-dev, libx11-dev
+Standards-Version: 3.9.5
+Homepage: http://www.github.com/aacebedo/i3ipc-glib
+
+Package: libi3ipc-glib
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libxcb1, libjson-glib-1.0-0, gobject-introspection, libglib2.0-0
+Description: A C interface library to i3wm
+ i3's interprocess communication (or ipc) is the interface i3wm uses to receive commands from client applications such as i3-msg. It also features a publish/subscribe mechanism for notifying interested parties of window manager events. i3ipc-GLib is a C library for controlling the window manager. This project is intended to be useful in applications such as status line generators, pagers, notification daemons, scripting wrappers, external controllers, dock windows, compositors, config templaters, and for debugging or testing the window manager itself.
