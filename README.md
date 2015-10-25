@@ -16,6 +16,7 @@ The latest documentation can be found online [here](http://dubstepdish.com/i3ipc
 * [i3ipc-python](https://github.com/acrisci/i3ipc-python) - an improved Python library to control i3wm.
 * [i3ipc-lua](https://github.com/acrisci/i3ipc-lua) - an improved Lua library to control i3wm.
 * [j4status](https://github.com/sardemff7/j4status) - shows the focused window in the status line.
+* [xfce4-i3-workspaces-plugin](https://github.com/denesb/xfce4-i3-workspaces-plugin) - workspaces plugin for using xfce4 with i3wm
 
 ## Installation
 
