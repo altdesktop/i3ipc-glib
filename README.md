@@ -12,9 +12,6 @@ The latest documentation can be found online [here](http://dubstepdish.com/i3ipc
 
 ### Projects using i3ipc-GLib
 
-* [i3ipc-gjs](https://github.com/acrisci/i3ipc-gjs) - an improved JavaScript library to control i3wm.
-* [i3ipc-python](https://github.com/acrisci/i3ipc-python) - an improved Python library to control i3wm.
-* [i3ipc-lua](https://github.com/acrisci/i3ipc-lua) - an improved Lua library to control i3wm.
 * [j4status](https://github.com/sardemff7/j4status) - shows the focused window in the status line.
 * [xfce4-i3-workspaces-plugin](https://github.com/denesb/xfce4-i3-workspaces-plugin) - workspaces plugin for using xfce4 with i3wm
 
@@ -73,7 +70,6 @@ Patches are welcome by pull request to fix bugs and add features.
 Here is a list of tasks that could be done.
 
 - [ ] Async commands
-- [ ] Container helper functions
 
 ## License
 
