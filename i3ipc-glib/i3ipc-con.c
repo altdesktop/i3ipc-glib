@@ -218,10 +218,18 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
   }
 }
 
+static void i3ipc_con_parent_weak_notify(gpointer data, GObject *object) {
+  i3ipcCon *con = I3IPC_CON(data);
+  con->priv->parent = NULL;
+}
+
 static void i3ipc_con_dispose(GObject *gobject) {
   i3ipcCon *self = I3IPC_CON(gobject);
 
-  self->priv->parent = NULL;
+  if (self->priv->parent) {
+    g_object_weak_unref(G_OBJECT(self->priv->parent), i3ipc_con_parent_weak_notify, self);
+    self->priv->parent = NULL;
+  }
 
   self->priv->rect = (i3ipc_rect_free(self->priv->rect), NULL);
   self->priv->deco_rect = (i3ipc_rect_free(self->priv->deco_rect), NULL);
@@ -246,9 +254,6 @@ static void i3ipc_con_finalize(GObject *gobject) {
   g_free(self->priv->mark);
 
   g_object_unref(self->priv->conn);
-
-  if (self->priv->parent)
-    g_object_unref(self->priv->parent);
 
   if (self->priv->nodes)
     g_list_free_full(self->priv->nodes, i3ipc_con_list_free_func);
@@ -529,7 +534,7 @@ i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *con
   }
 
   if (parent) {
-    g_object_ref(parent);
+    g_object_weak_ref(G_OBJECT(parent), i3ipc_con_parent_weak_notify, con);
     con->priv->parent = parent;
   }
 
