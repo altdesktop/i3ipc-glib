@@ -14,6 +14,7 @@ The latest documentation can be found online [here](http://dubstepdish.com/i3ipc
 
 * [j4status](https://github.com/sardemff7/j4status) - shows the focused window in the status line.
 * [xfce4-i3-workspaces-plugin](https://github.com/denesb/xfce4-i3-workspaces-plugin) - workspaces plugin for using xfce4 with i3wm
+* [i3-easyfocus](https://github.com/cornerman/i3-easyfocus) - focus and select windows in i3
 
 ## Installation
 
