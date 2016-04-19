@@ -133,7 +133,7 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
   switch (property_id)
   {
     case PROP_ID:
-      g_value_set_int(value, self->priv->id);
+      g_value_set_ulong(value, self->priv->id);
       break;
 
     case PROP_NAME:
