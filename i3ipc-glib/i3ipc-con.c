@@ -61,7 +61,7 @@ G_DEFINE_BOXED_TYPE(i3ipcRect, i3ipc_rect,
     i3ipc_rect_copy, i3ipc_rect_free);
 
 struct _i3ipcConPrivate {
-  gint id;
+  gulong id;
   gchar *name;
   gchar *border;
   gint current_border_width;
@@ -279,10 +279,10 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
    * i3ipcCon:id:
    */
   obj_properties[PROP_ID] =
-    g_param_spec_int("id",
+    g_param_spec_ulong("id",
         "Con id",
         "The internal ID (actually a C pointer value) of this container. Do not make any assumptions about it. You can use it to (re-)identify and address containers when talking to i3.",
-        0, /* to -> */ G_MAXINT,
+        0, /* to -> */ G_MAXULONG,
         0, /* default */
         G_PARAM_READABLE);
 
@@ -423,7 +423,7 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
          G_PARAM_READABLE);
 
   /**
-   * i3ipcCon:focus: (type GList(gint)):
+   * i3ipcCon:focus: (type GList(gulong)):
    *
    * This property is a list of con ids that represents the focus stack of
    * child nodes within this con. The top id in this list is the focused or
@@ -704,7 +704,7 @@ void i3ipc_con_command(i3ipcCon *self, const gchar* command, GError **err) {
 
   g_return_if_fail(err == NULL || *err == NULL);
 
-  context_command = g_strdup_printf("[con_id=\"%d\"] %s", self->priv->id, command);
+  context_command = g_strdup_printf("[con_id=\"%lu\"] %s", self->priv->id, command);
 
   reply = i3ipc_connection_message(self->priv->conn, I3IPC_MESSAGE_TYPE_COMMAND, context_command, &tmp_error);
 
@@ -739,7 +739,7 @@ void i3ipc_con_command_children(i3ipcCon *self, const gchar* command, GError **e
   payload = g_string_new("");
 
   for (gint i = 0; i < len; i += 1)
-    g_string_append_printf(payload, "[con_id=\"%d\"] %s; ", I3IPC_CON(g_list_nth_data(self->priv->nodes, i))->priv->id, command);
+    g_string_append_printf(payload, "[con_id=\"%lu\"] %s; ", I3IPC_CON(g_list_nth_data(self->priv->nodes, i))->priv->id, command);
 
   reply = i3ipc_connection_message(self->priv->conn, I3IPC_MESSAGE_TYPE_COMMAND, payload->str, &tmp_error);
 
@@ -827,7 +827,7 @@ i3ipcCon *i3ipc_con_find_focused(i3ipcCon *self) {
  *
  * Returns: (transfer none): The con with the given con_id among this con's descendents
  */
-i3ipcCon *i3ipc_con_find_by_id(i3ipcCon *self, const gint con_id) {
+i3ipcCon *i3ipc_con_find_by_id(i3ipcCon *self, const gulong con_id) {
   GList *descendents;
   i3ipcCon *retval = NULL;
 
