@@ -68,7 +68,7 @@ struct _i3ipcConPrivate {
   gchar *layout;
   gchar *orientation;
   gfloat percent;
-  gint window;
+  guint window;
   gboolean urgent;
   gboolean focused;
   gboolean fullscreen_mode;
@@ -161,7 +161,7 @@ static void i3ipc_con_get_property(GObject *object, guint property_id, GValue *v
       break;
 
     case PROP_WINDOW:
-      g_value_set_int(value, self->priv->window);
+      g_value_set_uint(value, self->priv->window);
       break;
 
     case PROP_URGENT:
@@ -331,10 +331,10 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         G_PARAM_READABLE);
 
   obj_properties[PROP_WINDOW] =
-    g_param_spec_int("window",
+    g_param_spec_uint("window",
         "Con window",
         "The X11 window ID of the actual client window inside this container. This field is set to null for split containers or otherwise empty containers. This ID corresponds to what xwininfo(1) and other X11-related tools display (usually in hex).",
-        0, /* to -> */ G_MAXINT,
+        0, /* to -> */ G_MAXUINT,
         0, /* default */
         G_PARAM_READABLE);
 
@@ -855,7 +855,7 @@ i3ipcCon *i3ipc_con_find_by_id(i3ipcCon *self, const gulong con_id) {
  *
  * Returns: (transfer none): The con with the given window id among this con's descendents
  */
-i3ipcCon *i3ipc_con_find_by_window(i3ipcCon *self, const gint window_id) {
+i3ipcCon *i3ipc_con_find_by_window(i3ipcCon *self, const guint window_id) {
   GList *descendents;
   i3ipcCon *retval = NULL;
 
