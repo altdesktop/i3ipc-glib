@@ -123,6 +123,8 @@ i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **
 
 void i3ipc_connection_main(i3ipcConnection *self);
 
+void i3ipc_connection_main_with_context(i3ipcConnection *self, GMainContext *context);
+
 void i3ipc_connection_main_quit(i3ipcConnection *self);
 
 #endif
