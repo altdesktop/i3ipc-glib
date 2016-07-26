@@ -1539,6 +1539,22 @@ void i3ipc_connection_main(i3ipcConnection *self) {
 }
 
 /**
+ * i3ipc_connection_main_with_context:
+ * @self: An #i3ipcConnection
+ * @context: A context to give g_main_loop_new
+ *
+ * A convenience function for scripts to run a main loop with custom context and wait for events.
+ * The main loop will terminate when the connection to the ipc is lost, such as
+ * when i3 shuts down or restarts.
+ */
+void i3ipc_connection_main_with_context(i3ipcConnection *self, GMainContext *context) {
+  self->priv->main_loop = g_main_loop_new(context, FALSE);
+  g_main_loop_run(self->priv->main_loop);
+  g_main_loop_unref(self->priv->main_loop);
+  self->priv->main_loop = NULL;
+}
+
+/**
  * i3ipc_connection_main_quit:
  * @self: An #i3ipcConnection
  *
