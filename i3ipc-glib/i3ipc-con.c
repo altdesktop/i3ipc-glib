@@ -656,8 +656,7 @@ GList *i3ipc_con_descendents(i3ipcCon *self) {
   g_list_foreach(self->priv->nodes, i3ipc_con_collect_descendents_func, retval);
   g_list_foreach(self->priv->floating_nodes, i3ipc_con_collect_descendents_func, retval);
 
-  /* XXX: I hope this doesn't leak */
-  retval = g_list_remove_link(retval, g_list_first(retval));
+  retval = g_list_delete_link(retval, g_list_first(retval));
 
   return retval;
 }
