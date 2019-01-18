@@ -34,6 +34,7 @@ The following packages are required for building i3-ipc:
 * glib >= 2.32
 * gobject-introspection (optional for bindings)
 * json-glib >= 0.14
+* gtk-doc-tools
 
 ## Example
 
