@@ -1,5 +1,4 @@
-/* vim:ts=2:sw=2:expandtab
- *
+/*
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -23,8 +22,8 @@
 #define __I3IPC_CON_PRIVATE_H__
 
 #include <json-glib/json-glib.h>
-#include "i3ipc-connection.h"
 #include "i3ipc-con.h"
+#include "i3ipc-connection.h"
 
 i3ipcCon *i3ipc_con_new(i3ipcCon *parent, JsonObject *data, i3ipcConnection *conn);
 

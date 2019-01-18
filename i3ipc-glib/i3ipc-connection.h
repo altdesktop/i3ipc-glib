@@ -1,5 +1,4 @@
-/* vim:ts=2:sw=2:expandtab
- *
+/*
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -41,16 +40,19 @@
  *
  */
 
-#define I3IPC_TYPE_CONNECTION             (i3ipc_connection_get_type ())
-#define I3IPC_CONNECTION(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), I3IPC_TYPE_CONNECTION, i3ipcConnection))
-#define I3IPC_IS_CONNECTION(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), I3IPC_TYPE_CONNECTION))
-#define I3IPC_CONNECTION_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), I3IPC_TYPE_CONNECTION, i3ipcConnectionClass))
-#define I3IPC_IS_CONNECTION_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), I3IPC_TYPE_CONNECTION))
-#define I3IPC_CONNECTION_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), I3IPC_TYPE_CONNECTION, i3ipcConnectionClass))
+#define I3IPC_TYPE_CONNECTION (i3ipc_connection_get_type())
+#define I3IPC_CONNECTION(obj) \
+    (G_TYPE_CHECK_INSTANCE_CAST((obj), I3IPC_TYPE_CONNECTION, i3ipcConnection))
+#define I3IPC_IS_CONNECTION(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), I3IPC_TYPE_CONNECTION))
+#define I3IPC_CONNECTION_CLASS(klass) \
+    (G_TYPE_CHECK_CLASS_CAST((klass), I3IPC_TYPE_CONNECTION, i3ipcConnectionClass))
+#define I3IPC_IS_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), I3IPC_TYPE_CONNECTION))
+#define I3IPC_CONNECTION_GET_CLASS(obj) \
+    (G_TYPE_INSTANCE_GET_CLASS((obj), I3IPC_TYPE_CONNECTION, i3ipcConnectionClass))
 
-typedef struct _i3ipcConnection           i3ipcConnection;
-typedef struct _i3ipcConnectionClass      i3ipcConnectionClass;
-typedef struct _i3ipcConnectionPrivate    i3ipcConnectionPrivate;
+typedef struct _i3ipcConnection i3ipcConnection;
+typedef struct _i3ipcConnectionClass i3ipcConnectionClass;
+typedef struct _i3ipcConnectionPrivate i3ipcConnectionPrivate;
 
 /**
  * i3ipcMessageType:
@@ -68,28 +70,26 @@ typedef struct _i3ipcConnectionPrivate    i3ipcConnectionPrivate;
  * This enumeration can be extended at later date
  */
 typedef enum { /*< underscore_name=i3ipc_message_type >*/
-  I3IPC_MESSAGE_TYPE_COMMAND,
-  I3IPC_MESSAGE_TYPE_GET_WORKSPACES,
-  I3IPC_MESSAGE_TYPE_SUBSCRIBE,
-  I3IPC_MESSAGE_TYPE_GET_OUTPUTS,
-  I3IPC_MESSAGE_TYPE_GET_TREE,
-  I3IPC_MESSAGE_TYPE_GET_MARKS,
-  I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG,
-  I3IPC_MESSAGE_TYPE_GET_VERSION,
+               I3IPC_MESSAGE_TYPE_COMMAND,
+               I3IPC_MESSAGE_TYPE_GET_WORKSPACES,
+               I3IPC_MESSAGE_TYPE_SUBSCRIBE,
+               I3IPC_MESSAGE_TYPE_GET_OUTPUTS,
+               I3IPC_MESSAGE_TYPE_GET_TREE,
+               I3IPC_MESSAGE_TYPE_GET_MARKS,
+               I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG,
+               I3IPC_MESSAGE_TYPE_GET_VERSION,
 } i3ipcMessageType;
 
-struct _i3ipcConnection
-{
-  GObject parent_instance;
+struct _i3ipcConnection {
+    GObject parent_instance;
 
-  i3ipcConnectionPrivate *priv;
+    i3ipcConnectionPrivate *priv;
 };
 
-struct _i3ipcConnectionClass
-{
-  GObjectClass parent_class;
+struct _i3ipcConnectionClass {
+    GObjectClass parent_class;
 
-  /* class members */
+    /* class members */
 };
 
 /* used by I3IPC_TYPE_CONNECTION */
@@ -99,13 +99,16 @@ i3ipcConnection *i3ipc_connection_new(const gchar *socket_path, GError **err);
 
 /* Method definitions */
 
-gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type, const gchar *payload, GError **err);
+gchar *i3ipc_connection_message(i3ipcConnection *self, i3ipcMessageType message_type,
+                                const gchar *payload, GError **err);
 
 GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GError **err);
 
-i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events, GError **err);
+i3ipcCommandReply *i3ipc_connection_subscribe(i3ipcConnection *self, i3ipcEvent events,
+                                              GError **err);
 
-i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, GClosure *callback, GError **err);
+i3ipcConnection *i3ipc_connection_on(i3ipcConnection *self, const gchar *event, GClosure *callback,
+                                     GError **err);
 
 GSList *i3ipc_connection_get_workspaces(i3ipcConnection *self, GError **err);
 
@@ -117,7 +120,8 @@ GSList *i3ipc_connection_get_marks(i3ipcConnection *self, GError **err);
 
 GSList *i3ipc_connection_get_bar_config_list(i3ipcConnection *self, GError **err);
 
-i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, const gchar *bar_id, GError **err);
+i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, const gchar *bar_id,
+                                                     GError **err);
 
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err);
 

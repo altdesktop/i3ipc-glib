@@ -1,5 +1,4 @@
-/* vim:ts=2:sw=2:expandtab
- *
+/*
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -18,7 +17,6 @@
  * Copyright © 2014, Tony Crisci
  */
 
-
 #include <glib-object.h>
 
 #include "i3ipc-con.h"
@@ -35,22 +33,22 @@
  * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
-  i3ipcWorkspaceEvent *retval;
+    i3ipcWorkspaceEvent *retval;
 
-  g_return_val_if_fail(event != NULL, NULL);
+    g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new0(i3ipcWorkspaceEvent);
-  *retval = *event;
+    retval = g_slice_new0(i3ipcWorkspaceEvent);
+    *retval = *event;
 
-  retval->change = g_strdup(event->change);
+    retval->change = g_strdup(event->change);
 
-  if (event->current && I3IPC_IS_CON(event->current))
-    g_object_ref(event->current);
+    if (event->current && I3IPC_IS_CON(event->current))
+        g_object_ref(event->current);
 
-  if (event->old && I3IPC_IS_CON(event->old))
-    g_object_ref(event->old);
+    if (event->old && I3IPC_IS_CON(event->old))
+        g_object_ref(event->old);
 
-  return retval;
+    return retval;
 }
 
 /**
@@ -60,23 +58,22 @@ i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_workspace_event_free(i3ipcWorkspaceEvent *event) {
-  if (!event)
-    return;
+    if (!event)
+        return;
 
-  g_free(event->change);
+    g_free(event->change);
 
-  if (event->current && I3IPC_IS_CON(event->current))
-    g_clear_object(&event->current);
+    if (event->current && I3IPC_IS_CON(event->current))
+        g_clear_object(&event->current);
 
-  if (event->old && I3IPC_IS_CON(event->old))
-    g_clear_object(&event->old);
+    if (event->old && I3IPC_IS_CON(event->old))
+        g_clear_object(&event->old);
 
-  g_slice_free(i3ipcWorkspaceEvent, event);
-
+    g_slice_free(i3ipcWorkspaceEvent, event);
 }
 
-G_DEFINE_BOXED_TYPE(i3ipcWorkspaceEvent, i3ipc_workspace_event,
-    i3ipc_workspace_event_copy, i3ipc_workspace_event_free);
+G_DEFINE_BOXED_TYPE(i3ipcWorkspaceEvent, i3ipc_workspace_event, i3ipc_workspace_event_copy,
+                    i3ipc_workspace_event_free);
 
 /**
  * i3ipc_generic_event_copy:
@@ -88,16 +85,16 @@ G_DEFINE_BOXED_TYPE(i3ipcWorkspaceEvent, i3ipc_workspace_event,
  * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
-  i3ipcGenericEvent *retval;
+    i3ipcGenericEvent *retval;
 
-  g_return_val_if_fail(event != NULL, NULL);
+    g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new0(i3ipcGenericEvent);
-  *retval = *event;
+    retval = g_slice_new0(i3ipcGenericEvent);
+    *retval = *event;
 
-  retval->change = g_strdup(event->change);
+    retval->change = g_strdup(event->change);
 
-  return retval;
+    return retval;
 }
 
 /**
@@ -107,16 +104,16 @@ i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_generic_event_free(i3ipcGenericEvent *event) {
-  if (!event)
-    return;
+    if (!event)
+        return;
 
-  g_free(event->change);
+    g_free(event->change);
 
-  g_slice_free(i3ipcGenericEvent, event);
+    g_slice_free(i3ipcGenericEvent, event);
 }
 
-G_DEFINE_BOXED_TYPE(i3ipcGenericEvent, i3ipc_generic_event,
-    i3ipc_generic_event_copy, i3ipc_generic_event_free);
+G_DEFINE_BOXED_TYPE(i3ipcGenericEvent, i3ipc_generic_event, i3ipc_generic_event_copy,
+                    i3ipc_generic_event_free);
 
 /**
  * i3ipc_window_event_copy:
@@ -128,17 +125,17 @@ G_DEFINE_BOXED_TYPE(i3ipcGenericEvent, i3ipc_generic_event,
  * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event) {
-  i3ipcWindowEvent *retval;
+    i3ipcWindowEvent *retval;
 
-  g_return_val_if_fail(event != NULL, NULL);
+    g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new0(i3ipcWindowEvent);
-  *retval = *event;
+    retval = g_slice_new0(i3ipcWindowEvent);
+    *retval = *event;
 
-  retval->change = g_strdup(event->change);
-  g_object_ref(event->container);
+    retval->change = g_strdup(event->change);
+    g_object_ref(event->container);
 
-  return retval;
+    return retval;
 }
 
 /**
@@ -148,18 +145,18 @@ i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_window_event_free(i3ipcWindowEvent *event) {
-  if (!event)
-    return;
+    if (!event)
+        return;
 
-  g_free(event->change);
+    g_free(event->change);
 
-  g_clear_object(&event->container);
+    g_clear_object(&event->container);
 
-  g_slice_free(i3ipcWindowEvent, event);
+    g_slice_free(i3ipcWindowEvent, event);
 }
 
-G_DEFINE_BOXED_TYPE(i3ipcWindowEvent, i3ipc_window_event,
-    i3ipc_window_event_copy, i3ipc_window_event_free);
+G_DEFINE_BOXED_TYPE(i3ipcWindowEvent, i3ipc_window_event, i3ipc_window_event_copy,
+                    i3ipc_window_event_free);
 
 /**
  * i3ipc_barconfig_update_event_copy:
@@ -170,18 +167,18 @@ G_DEFINE_BOXED_TYPE(i3ipcWindowEvent, i3ipc_window_event,
  * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdateEvent *event) {
-  i3ipcBarconfigUpdateEvent *retval;
+    i3ipcBarconfigUpdateEvent *retval;
 
-  g_return_val_if_fail(event != NULL, NULL);
+    g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new0(i3ipcBarconfigUpdateEvent);
-  *retval = *event;
+    retval = g_slice_new0(i3ipcBarconfigUpdateEvent);
+    *retval = *event;
 
-  retval->hidden_state = g_strdup(event->hidden_state);
-  retval->id = g_strdup(event->id);
-  retval->mode = g_strdup(event->mode);
+    retval->hidden_state = g_strdup(event->hidden_state);
+    retval->id = g_strdup(event->id);
+    retval->mode = g_strdup(event->mode);
 
-  return retval;
+    return retval;
 }
 
 /**
@@ -191,18 +188,18 @@ i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdat
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_barconfig_update_event_free(i3ipcBarconfigUpdateEvent *event) {
-  if (!event)
-    return;
+    if (!event)
+        return;
 
-  g_free(event->id);
-  g_free(event->hidden_state);
-  g_free(event->mode);
+    g_free(event->id);
+    g_free(event->hidden_state);
+    g_free(event->mode);
 
-  g_slice_free(i3ipcBarconfigUpdateEvent, event);
+    g_slice_free(i3ipcBarconfigUpdateEvent, event);
 }
 
 G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
-    i3ipc_barconfig_update_event_copy, i3ipc_barconfig_update_event_free);
+                    i3ipc_barconfig_update_event_copy, i3ipc_barconfig_update_event_free);
 
 /**
  * i3ipc_binding_info_copy:
@@ -213,19 +210,19 @@ G_DEFINE_BOXED_TYPE(i3ipcBarconfigUpdateEvent, i3ipc_barconfig_update_event,
  * Returns: (transfer full): a newly-allocated copy of @info
  */
 i3ipcBindingInfo *i3ipc_binding_info_copy(i3ipcBindingInfo *info) {
-  i3ipcBindingInfo *retval;
+    i3ipcBindingInfo *retval;
 
-  g_return_val_if_fail(info != NULL, NULL);
+    g_return_val_if_fail(info != NULL, NULL);
 
-  retval = g_slice_new0(i3ipcBindingInfo);
-  *retval = *info;
+    retval = g_slice_new0(i3ipcBindingInfo);
+    *retval = *info;
 
-  retval->command = g_strdup(info->command);
-  retval->symbol = g_strdup(info->symbol);
-  retval->input_type = g_strdup(info->input_type);
-  retval->mods = g_slist_copy_deep(info->mods, (GCopyFunc)g_strdup, NULL);
+    retval->command = g_strdup(info->command);
+    retval->symbol = g_strdup(info->symbol);
+    retval->input_type = g_strdup(info->input_type);
+    retval->mods = g_slist_copy_deep(info->mods, (GCopyFunc)g_strdup, NULL);
 
-  return retval;
+    return retval;
 }
 
 /**
@@ -235,19 +232,19 @@ i3ipcBindingInfo *i3ipc_binding_info_copy(i3ipcBindingInfo *info) {
  * Frees @info. If @info is %NULL, it simply returns.
  */
 void i3ipc_binding_info_free(i3ipcBindingInfo *info) {
-  if (!info)
-    return;
+    if (!info)
+        return;
 
-  g_free(info->command);
-  g_free(info->input_type);
-  g_free(info->symbol);
-  g_slist_free_full(info->mods, g_free);
+    g_free(info->command);
+    g_free(info->input_type);
+    g_free(info->symbol);
+    g_slist_free_full(info->mods, g_free);
 
-  g_slice_free(i3ipcBindingInfo, info);
+    g_slice_free(i3ipcBindingInfo, info);
 }
 
-G_DEFINE_BOXED_TYPE(i3ipcBindingInfo, i3ipc_binding_info,
-    i3ipc_binding_info_copy, i3ipc_binding_info_free);
+G_DEFINE_BOXED_TYPE(i3ipcBindingInfo, i3ipc_binding_info, i3ipc_binding_info_copy,
+                    i3ipc_binding_info_free);
 
 /**
  * i3ipc_binding_event_copy:
@@ -258,17 +255,17 @@ G_DEFINE_BOXED_TYPE(i3ipcBindingInfo, i3ipc_binding_info,
  * Returns: (transfer full): a newly-allocated copy of @event
  */
 i3ipcBindingEvent *i3ipc_binding_event_copy(i3ipcBindingEvent *event) {
-  i3ipcBindingEvent *retval;
+    i3ipcBindingEvent *retval;
 
-  g_return_val_if_fail(event != NULL, NULL);
+    g_return_val_if_fail(event != NULL, NULL);
 
-  retval = g_slice_new0(i3ipcBindingEvent);
-  *retval = *event;
+    retval = g_slice_new0(i3ipcBindingEvent);
+    *retval = *event;
 
-  retval->binding = i3ipc_binding_info_copy(event->binding);
-  retval->change = g_strdup(event->change);
+    retval->binding = i3ipc_binding_info_copy(event->binding);
+    retval->change = g_strdup(event->change);
 
-  return retval;
+    return retval;
 }
 
 /**
@@ -278,14 +275,14 @@ i3ipcBindingEvent *i3ipc_binding_event_copy(i3ipcBindingEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_binding_event_free(i3ipcBindingEvent *event) {
-  if (!event)
-    return;
+    if (!event)
+        return;
 
-  g_free(event->change);
-  i3ipc_binding_info_free(event->binding);
+    g_free(event->change);
+    i3ipc_binding_info_free(event->binding);
 
-  g_slice_free(i3ipcBindingEvent, event);
+    g_slice_free(i3ipcBindingEvent, event);
 }
 
-G_DEFINE_BOXED_TYPE(i3ipcBindingEvent, i3ipc_binding_event,
-    i3ipc_binding_event_copy, i3ipc_binding_event_free);
+G_DEFINE_BOXED_TYPE(i3ipcBindingEvent, i3ipc_binding_event, i3ipc_binding_event_copy,
+                    i3ipc_binding_event_free);

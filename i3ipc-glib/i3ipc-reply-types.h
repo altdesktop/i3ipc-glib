@@ -1,5 +1,4 @@
-/* vim:ts=2:sw=2:expandtab
- *
+/*
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -26,17 +25,17 @@
 
 #include "i3ipc-con.h"
 
-#define I3IPC_TYPE_COMMAND_REPLY          (i3ipc_command_reply_get_type ())
-#define I3IPC_TYPE_VERSION_REPLY          (i3ipc_version_reply_get_type ())
-#define I3IPC_TYPE_BAR_CONFIG_REPLY       (i3ipc_bar_config_reply_get_type ())
-#define I3IPC_TYPE_OUTPUT_REPLY           (i3ipc_output_reply_get_type ())
-#define I3IPC_TYPE_WORKSPACE_REPLY        (i3ipc_workspace_reply_get_type ())
+#define I3IPC_TYPE_COMMAND_REPLY (i3ipc_command_reply_get_type())
+#define I3IPC_TYPE_VERSION_REPLY (i3ipc_version_reply_get_type())
+#define I3IPC_TYPE_BAR_CONFIG_REPLY (i3ipc_bar_config_reply_get_type())
+#define I3IPC_TYPE_OUTPUT_REPLY (i3ipc_output_reply_get_type())
+#define I3IPC_TYPE_WORKSPACE_REPLY (i3ipc_workspace_reply_get_type())
 
-typedef struct _i3ipcCommandReply         i3ipcCommandReply;
-typedef struct _i3ipcVersionReply         i3ipcVersionReply;
-typedef struct _i3ipcBarConfigReply       i3ipcBarConfigReply;
-typedef struct _i3ipcOutputReply          i3ipcOutputReply;
-typedef struct _i3ipcWorkspaceReply       i3ipcWorkspaceReply;
+typedef struct _i3ipcCommandReply i3ipcCommandReply;
+typedef struct _i3ipcVersionReply i3ipcVersionReply;
+typedef struct _i3ipcBarConfigReply i3ipcBarConfigReply;
+typedef struct _i3ipcOutputReply i3ipcOutputReply;
+typedef struct _i3ipcWorkspaceReply i3ipcWorkspaceReply;
 
 /**
  * i3ipcReplyType:
@@ -54,14 +53,14 @@ typedef struct _i3ipcWorkspaceReply       i3ipcWorkspaceReply;
  * This enumeration can be extended at later date
  */
 typedef enum { /*< underscore_name=i3ipc_reply_type >*/
-  I3IPC_REPLY_TYPE_COMMAND,
-  I3IPC_REPLY_TYPE_WORKSPACES,
-  I3IPC_REPLY_TYPE_SUBSCRIBE,
-  I3IPC_REPLY_TYPE_OUTPUTS,
-  I3IPC_REPLY_TYPE_TREE,
-  I3IPC_REPLY_TYPE_MARKS,
-  I3IPC_REPLY_TYPE_BAR_CONFIG,
-  I3IPC_REPLY_TYPE_VERSION,
+               I3IPC_REPLY_TYPE_COMMAND,
+               I3IPC_REPLY_TYPE_WORKSPACES,
+               I3IPC_REPLY_TYPE_SUBSCRIBE,
+               I3IPC_REPLY_TYPE_OUTPUTS,
+               I3IPC_REPLY_TYPE_TREE,
+               I3IPC_REPLY_TYPE_MARKS,
+               I3IPC_REPLY_TYPE_BAR_CONFIG,
+               I3IPC_REPLY_TYPE_VERSION,
 } i3ipcReplyType;
 
 /**
@@ -73,11 +72,10 @@ typedef enum { /*< underscore_name=i3ipc_reply_type >*/
  * The #i3ipcCommandReply is the primary structure for accessing the reply of
  * an ipc command.
  */
-struct _i3ipcCommandReply
-{
-  gboolean success;
-  gboolean parse_error;
-  gchar *error;
+struct _i3ipcCommandReply {
+    gboolean success;
+    gboolean parse_error;
+    gchar *error;
 };
 
 i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply);
@@ -94,12 +92,11 @@ GType i3ipc_command_reply_get_type(void);
  * The #i3ipcVersionReply is the primary structure for accessing the reply of
  * an ipc version command.
  */
-struct _i3ipcVersionReply
-{
-  gint major;
-  gint minor;
-  gint patch;
-  gchar *human_readable;
+struct _i3ipcVersionReply {
+    gint major;
+    gint minor;
+    gint patch;
+    gchar *human_readable;
 };
 
 i3ipcVersionReply *i3ipc_version_reply_copy(i3ipcVersionReply *version);
@@ -122,18 +119,17 @@ GType i3ipc_version_reply_get_type(void);
  * The #i3ipcBarConfigReply is the primary structure for accessing the reply of
  * an ipc bar config command.
  */
-struct _i3ipcBarConfigReply
-{
-  gchar *id;
-  gchar *mode;
-  gchar *position;
-  gchar *status_command;
-  gchar *font;
-  gboolean workspace_buttons;
-  gboolean binding_mode_indicator;
-  gboolean verbose;
-  gboolean strip_workspace_numbers;
-  GHashTable *colors;
+struct _i3ipcBarConfigReply {
+    gchar *id;
+    gchar *mode;
+    gchar *position;
+    gchar *status_command;
+    gchar *font;
+    gboolean workspace_buttons;
+    gboolean binding_mode_indicator;
+    gboolean verbose;
+    gboolean strip_workspace_numbers;
+    GHashTable *colors;
 };
 
 i3ipcBarConfigReply *i3ipc_bar_config_reply_copy(i3ipcBarConfigReply *config);
@@ -150,12 +146,11 @@ GType i3ipc_bar_config_reply_get_type(void);
  * The #i3ipcOutputReply is the primary structure for accessing the reply of an
  * ipc output command.
  */
-struct _i3ipcOutputReply
-{
-  gchar *name;
-  gboolean active;
-  gchar *current_workspace;
-  i3ipcRect *rect;
+struct _i3ipcOutputReply {
+    gchar *name;
+    gboolean active;
+    gchar *current_workspace;
+    i3ipcRect *rect;
 };
 
 i3ipcOutputReply *i3ipc_output_reply_copy(i3ipcOutputReply *output);
@@ -175,15 +170,14 @@ GType i3ipc_output_reply_get_type(void);
  * The #i3ipcWorkspaceReply is the primary structure for accessing the reply of
  * an ipc workspace command.
  */
-struct _i3ipcWorkspaceReply
-{
-  gint num;
-  gchar *name;
-  gboolean visible;
-  gboolean focused;
-  gboolean urgent;
-  gchar *output;
-  i3ipcRect *rect;
+struct _i3ipcWorkspaceReply {
+    gint num;
+    gchar *name;
+    gboolean visible;
+    gboolean focused;
+    gboolean urgent;
+    gchar *output;
+    i3ipcRect *rect;
 };
 
 i3ipcWorkspaceReply *i3ipc_workspace_reply_copy(i3ipcWorkspaceReply *workspace);

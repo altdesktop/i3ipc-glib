@@ -1,5 +1,4 @@
-/* vim:ts=2:sw=2:expandtab
- *
+/*
  * This file is part of i3-ipc.
  *
  * i3-ipc is free software: you can redistribute it and/or modify
@@ -38,20 +37,20 @@
  * in the context of the container.
  */
 
-#define I3IPC_TYPE_CON             (i3ipc_con_get_type ())
-#define I3IPC_CON(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), I3IPC_TYPE_CON, i3ipcCon))
-#define I3IPC_IS_CON(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), I3IPC_TYPE_CON))
-#define I3IPC_CON_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), I3IPC_TYPE_CON, i3ipcConClass))
-#define I3IPC_IS_CON_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), I3IPC_TYPE_CON))
-#define I3IPC_CON_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), I3IPC_TYPE_CON, i3ipcConClass))
+#define I3IPC_TYPE_CON (i3ipc_con_get_type())
+#define I3IPC_CON(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), I3IPC_TYPE_CON, i3ipcCon))
+#define I3IPC_IS_CON(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), I3IPC_TYPE_CON))
+#define I3IPC_CON_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), I3IPC_TYPE_CON, i3ipcConClass))
+#define I3IPC_IS_CON_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), I3IPC_TYPE_CON))
+#define I3IPC_CON_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS((obj), I3IPC_TYPE_CON, i3ipcConClass))
 
-#define I3IPC_TYPE_RECT            (i3ipc_rect_get_type ())
+#define I3IPC_TYPE_RECT (i3ipc_rect_get_type())
 
-typedef struct _i3ipcRect          i3ipcRect;
+typedef struct _i3ipcRect i3ipcRect;
 
-typedef struct _i3ipcCon           i3ipcCon;
-typedef struct _i3ipcConClass      i3ipcConClass;
-typedef struct _i3ipcConPrivate    i3ipcConPrivate;
+typedef struct _i3ipcCon i3ipcCon;
+typedef struct _i3ipcConClass i3ipcConClass;
+typedef struct _i3ipcConPrivate i3ipcConPrivate;
 
 /**
  * i3ipcRect:
@@ -62,31 +61,28 @@ typedef struct _i3ipcConPrivate    i3ipcConPrivate;
  *
  * An #i3ipcRect descrites the extents of a container.
  */
-struct _i3ipcRect
-{
-  gint x;
-  gint y;
-  gint width;
-  gint height;
+struct _i3ipcRect {
+    gint x;
+    gint y;
+    gint width;
+    gint height;
 };
 
 i3ipcRect *i3ipc_rect_copy(i3ipcRect *rect);
 void i3ipc_rect_free(i3ipcRect *rect);
 GType i3ipc_rect_get_type(void);
 
-struct _i3ipcCon
-{
-  GObject parent_instance;
+struct _i3ipcCon {
+    GObject parent_instance;
 
-  /* instance members */
-  i3ipcConPrivate *priv;
+    /* instance members */
+    i3ipcConPrivate *priv;
 };
 
-struct _i3ipcConClass
-{
-  GObjectClass parent_class;
+struct _i3ipcConClass {
+    GObjectClass parent_class;
 
-  /* class members */
+    /* class members */
 };
 
 /* used by I3IPC_TYPE_CON */
@@ -106,9 +102,9 @@ GList *i3ipc_con_leaves(i3ipcCon *self);
 
 const gchar *i3ipc_con_get_name(i3ipcCon *self);
 
-void i3ipc_con_command(i3ipcCon *self, const gchar* command, GError **err);
+void i3ipc_con_command(i3ipcCon *self, const gchar *command, GError **err);
 
-void i3ipc_con_command_children(i3ipcCon *self, const gchar* command, GError **err);
+void i3ipc_con_command_children(i3ipcCon *self, const gchar *command, GError **err);
 
 GList *i3ipc_con_workspaces(i3ipcCon *self);
 
