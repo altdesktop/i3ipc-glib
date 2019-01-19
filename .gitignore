@@ -78,3 +78,13 @@
 *.i*86
 *.x86_64
 *.hex
+
+# Meson
+mesonbuild
+
+# Tests
+.pytest_cache
+mesonbuild-test
+__pycache__
+env
+*.pyc
