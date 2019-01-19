@@ -7,19 +7,25 @@ configure_file(
   configuration : version_conf,
 )
 
+i3ipc_shared_link = declare_dependency(
+  link_with: i3ipc_lib.get_shared_lib(),
+  dependenies: deps
+)
+
 gnome.gtkdoc(
-  meson.project_name(),
+  'i3ipc',
   src_dir: join_paths(meson.source_root(), 'i3ipc-glib'),
   dependencies: [
     glib_dep,
-    i3ipc_lib
+    gobject_dep,
+    i3ipc_shared_link
   ],
   mkdb_args: [
     '--output-format=xml',
-    '--name-space=' + meson.project_name(),
+    '--name-space=i3ipc',
   ],
   scan_args: '--deprecated-guards="I3IPC_DISABLE_DEPRECATED"',
-  gobject_typesfile: join_paths(meson.current_build_dir(), meson.project_name() + '.types'),
+  gobject_typesfile: join_paths(meson.current_build_dir(), 'i3ipc.types'),
   fixxref_args: [
     '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gobject')),
     '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gio')),
@@ -28,8 +34,7 @@ gnome.gtkdoc(
   main_sgml: 'i3ipc-glib-docs.xml',
   ignore_headers: [
     'i3ipc-glib.h',
-    'i3ipc-con-private.h',
-    'i3ipc-enum-types.h',
+    'i3ipc-con-private.h'
   ],
   install: true,
 )

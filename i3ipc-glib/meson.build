@@ -35,7 +35,7 @@ enums = gnome.mkenums_simple(
   install_dir: join_paths(get_option('includedir'), 'i3ipc-glib')
 )
 
-i3ipc_lib = library(
+i3ipc_lib = both_libraries(
   'i3ipc-glib',
   i3ipc_sources, enums,
   dependencies: deps,
@@ -55,9 +55,13 @@ if get_option('introspection')
     sources: [
       enums,
       'i3ipc-connection.c',
+      'i3ipc-connection.h',
       'i3ipc-con.c',
+      'i3ipc-con.h',
       'i3ipc-reply-types.c',
-      'i3ipc-event-types.c'
+      'i3ipc-reply-types.h',
+      'i3ipc-event-types.c',
+      'i3ipc-event-types.h'
     ],
     nsversion: i3ipc_major_version + '.0',
     namespace: 'i3ipc',

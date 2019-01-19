@@ -38,4 +38,4 @@ gio_dep = dependency('gio-unix-2.0')
 glib_dep = dependency('glib-2.0')
 
 subdir('i3ipc-glib')
-#subdir('doc')
+subdir('doc')
