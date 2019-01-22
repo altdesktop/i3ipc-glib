@@ -121,7 +121,7 @@ def run_pytest(display):
     env['_I3IPC_TEST'] = '1'
     env['GI_TYPELIB_PATH'] = os.path.join(BUILDDIR, 'i3ipc-glib')
     env['LD_LIBRARY_PATH'] = os.path.join(BUILDDIR, 'i3ipc-glib')
-    return subprocess.call([PYTEST], env=env)
+    return subprocess.call(['valgrind', PYTEST], env=env)
 
 
 def build_project():

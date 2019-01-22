@@ -339,7 +339,7 @@ static gchar *i3ipc_connection_get_socket_path(i3ipcConnection *self, GError **e
     GError *tmp_error = NULL;
     xcb_intern_atom_reply_t *atom_reply;
     gchar *socket_path;
-    char *atomname = "I3_SOCKET_PATH";
+    const char *atomname = "I3_SOCKET_PATH";
     size_t content_max_words = 256;
     xcb_screen_t *screen;
     xcb_intern_atom_cookie_t atom_cookie;
@@ -378,8 +378,9 @@ static gchar *i3ipc_connection_get_socket_path(i3ipcConnection *self, GError **e
     );
 
     prop_reply = xcb_get_property_reply(conn, prop_cookie, NULL);
+    int len = xcb_get_property_value_length(prop_reply);
 
-    if (prop_reply == NULL) {
+    if (prop_reply == NULL || len == 0) {
         /* TODO i3ipc custom errors */
         g_free(atom_reply);
         g_free(prop_reply);
@@ -389,7 +390,6 @@ static gchar *i3ipc_connection_get_socket_path(i3ipcConnection *self, GError **e
         return NULL;
     }
 
-    int len = xcb_get_property_value_length(prop_reply);
     socket_path = malloc(len + 1);
 
     strncpy(socket_path, (char *)xcb_get_property_value(prop_reply), len);
@@ -848,6 +848,10 @@ GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GE
         cmd_reply->error = (json_object_has_member(json_reply, "error")
                                 ? g_strdup(json_object_get_string_member(json_reply, "error"))
                                 : NULL);
+
+        cmd_reply->_id = (json_object_has_member(json_reply, "id")
+                                ? g_strdup(json_object_get_string_member(json_reply, "id"))
+                                : 0);
 
         retval = g_slist_append(retval, cmd_reply);
     }

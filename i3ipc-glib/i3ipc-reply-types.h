@@ -76,6 +76,8 @@ struct _i3ipcCommandReply {
     gboolean success;
     gboolean parse_error;
     gchar *error;
+    /* for the 'open' command used in tests */
+    gint _id;
 };
 
 i3ipcCommandReply *i3ipc_command_reply_copy(i3ipcCommandReply *reply);
@@ -84,9 +86,9 @@ GType i3ipc_command_reply_get_type(void);
 
 /**
  * i3ipcVersionReply:
- * @major: The major version of i3, such as 4.
- * @minor: The minor version of i3, such as 2.
- * @patch: The patch version of i3, such as 1.
+ * @major: The major version of i3.
+ * @minor: The minor version of i3.
+ * @patch: The patch version of i3.
  * @human_readable: A human-readable version of i3.
  *
  * The #i3ipcVersionReply is the primary structure for accessing the reply of

@@ -12,7 +12,7 @@ class IpcTest:
 
     @pytest.fixture(scope='class')
     def i3(self):
-        process = Popen(['i3', '-c', 'test/i3.config'])
+        process = Popen(['/usr/bin/i3', '-c', 'test/i3.config'])
         # wait for i3 to start up
         tries = 0
 
