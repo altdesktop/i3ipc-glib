@@ -88,3 +88,4 @@ mesonbuild-test
 __pycache__
 env
 *.pyc
+build

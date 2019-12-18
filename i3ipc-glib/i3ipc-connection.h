@@ -64,6 +64,8 @@ typedef struct _i3ipcConnectionPrivate i3ipcConnectionPrivate;
  * @I3IPC_MESSAGE_TYPE_GET_MARKS:
  * @I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG:
  * @I3IPC_MESSAGE_TYPE_GET_VERSION:
+ * @I3IPC_MESSAGE_TYPE_GET_BINDING_MODES:
+ * @I3IPC_MESSAGE_TYPE_GET_CONFIG:
  *
  * Message type enumeration for #i3ipcConnection
  *
@@ -78,6 +80,8 @@ typedef enum { /*< underscore_name=i3ipc_message_type >*/
                I3IPC_MESSAGE_TYPE_GET_MARKS,
                I3IPC_MESSAGE_TYPE_GET_BAR_CONFIG,
                I3IPC_MESSAGE_TYPE_GET_VERSION,
+               I3IPC_MESSAGE_TYPE_GET_BINDING_MODES,
+               I3IPC_MESSAGE_TYPE_GET_CONFIG,
 } i3ipcMessageType;
 
 struct _i3ipcConnection {
@@ -124,6 +128,8 @@ i3ipcBarConfigReply *i3ipc_connection_get_bar_config(i3ipcConnection *self, cons
                                                      GError **err);
 
 i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **err);
+
+gchar *i3ipc_connection_get_config(i3ipcConnection *self, GError **err);
 
 void i3ipc_connection_main(i3ipcConnection *self);
 

@@ -1521,6 +1521,32 @@ i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **
 }
 
 /**
+ * i3ipc_connection_get_config:
+ * @self: An #i3ipcConnection
+ * @err: (allow-none): return location for a GError, or NULL
+ *
+ * Gets the config of i3. 
+ *
+ * Returns: (transfer full): an *gchar
+ */
+gchar *i3ipc_connection_get_config(i3ipcConnection *self, GError **err) {
+    gchar *reply;
+    GError *tmp_error = NULL;
+
+    g_return_val_if_fail(err == NULL || *err == NULL, NULL);
+
+    reply = i3ipc_connection_message(self, I3IPC_MESSAGE_TYPE_GET_CONFIG, "", &tmp_error);
+
+    if (tmp_error != NULL) {
+        g_free(reply);
+        g_propagate_error(err, tmp_error);
+        return NULL;
+    }
+
+    return reply;
+}
+
+/**
  * i3ipc_connection_main:
  * @self: An #i3ipcConnection
  *
