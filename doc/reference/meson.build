@@ -9,7 +9,7 @@ configure_file(
 
 i3ipc_shared_link = declare_dependency(
   link_with: i3ipc_lib.get_shared_lib(),
-  dependenies: deps
+  dependencies: deps
 )
 
 gnome.gtkdoc(

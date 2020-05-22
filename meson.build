@@ -39,3 +39,4 @@ glib_dep = dependency('glib-2.0')
 
 subdir('i3ipc-glib')
 subdir('doc')
+subdir('examples')

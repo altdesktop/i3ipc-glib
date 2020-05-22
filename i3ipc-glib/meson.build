@@ -44,6 +44,11 @@ i3ipc_lib = both_libraries(
   install: true
 )
 
+i3ipc = declare_dependency(
+    link_with: i3ipc_lib.get_shared_lib(),
+    dependencies: deps
+)
+
 if get_option('introspection')
   introspection_dep = dependency('gobject-introspection-1.0', required: false)
   if not introspection_dep.found()
