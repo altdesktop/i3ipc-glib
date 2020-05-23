@@ -18,10 +18,11 @@
  *
  */
 
+#include "i3ipc-reply-types.h"
+
 #include <glib-object.h>
 
 #include "i3ipc-con.h"
-#include "i3ipc-reply-types.h"
 
 /**
  * i3ipc_command_reply_copy:

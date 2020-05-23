@@ -17,11 +17,12 @@
  * Copyright © 2014, Tony Crisci
  */
 
+#include "i3ipc-event-types.h"
+
 #include <glib-object.h>
 
 #include "i3ipc-con.h"
 #include "i3ipc-enum-types.h"
-#include "i3ipc-event-types.h"
 
 /**
  * i3ipc_workspace_event_copy:

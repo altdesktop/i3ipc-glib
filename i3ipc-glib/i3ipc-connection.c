@@ -17,19 +17,18 @@
  * Copyright © 2014, Tony Crisci
  */
 
+#include "i3ipc-connection.h"
+
 #include <fcntl.h>
+#include <gio/gio.h>
+#include <glib-object.h>
+#include <json-glib/json-glib.h>
 #include <sys/errno.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <xcb/xcb.h>
 
-#include <glib-object.h>
-#include <json-glib/json-glib.h>
-
-#include <gio/gio.h>
-
 #include "i3ipc-con-private.h"
-#include "i3ipc-connection.h"
 #include "i3ipc-enum-types.h"
 #include "i3ipc-event-types.h"
 #include "i3ipc-reply-types.h"
@@ -73,8 +72,8 @@ static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE(i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT,
                         G_ADD_PRIVATE(i3ipcConnection)
-                        G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE,
-                                              i3ipc_connection_initable_iface_init));
+                            G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE,
+                                                  i3ipc_connection_initable_iface_init));
 
 static void i3ipc_connection_set_property(GObject *object, guint property_id, const GValue *value,
                                           GParamSpec *pspec) {
@@ -304,7 +303,6 @@ static void i3ipc_connection_class_init(i3ipcConnectionClass *klass) {
                      g_cclosure_marshal_VOID__VOID, /* c_marshaller */
                      G_TYPE_NONE,                   /* return_type */
                      0);                            /* n_params */
-
 }
 
 static void i3ipc_connection_init(i3ipcConnection *self) {
@@ -859,9 +857,9 @@ GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GE
                                 ? g_strdup(json_object_get_string_member(json_reply, "error"))
                                 : NULL);
 
-        cmd_reply->_id = (json_object_has_member(json_reply, "id")
-                                ? json_object_get_int_member(json_reply, "id")
-                                : 0);
+        cmd_reply->_id =
+            (json_object_has_member(json_reply, "id") ? json_object_get_int_member(json_reply, "id")
+                                                      : 0);
 
         retval = g_slist_append(retval, cmd_reply);
     }
@@ -1543,7 +1541,7 @@ i3ipcVersionReply *i3ipc_connection_get_version(i3ipcConnection *self, GError **
  * @self: An #i3ipcConnection
  * @err: (allow-none): return location for a GError, or NULL
  *
- * Gets the config of i3. 
+ * Gets the config of i3.
  *
  * Returns: (transfer full): an *gchar
  */

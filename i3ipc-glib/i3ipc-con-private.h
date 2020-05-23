@@ -22,6 +22,7 @@
 #define __I3IPC_CON_PRIVATE_H__
 
 #include <json-glib/json-glib.h>
+
 #include "i3ipc-con.h"
 #include "i3ipc-connection.h"
 
