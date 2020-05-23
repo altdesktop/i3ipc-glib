@@ -42,11 +42,13 @@ i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
 
     retval->change = g_strdup(event->change);
 
-    if (event->current && I3IPC_IS_CON(event->current))
+    if (event->current && I3IPC_IS_CON(event->current)) {
         g_object_ref(event->current);
+    }
 
-    if (event->old && I3IPC_IS_CON(event->old))
+    if (event->old && I3IPC_IS_CON(event->old)) {
         g_object_ref(event->old);
+    }
 
     return retval;
 }
@@ -58,16 +60,19 @@ i3ipcWorkspaceEvent *i3ipc_workspace_event_copy(i3ipcWorkspaceEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_workspace_event_free(i3ipcWorkspaceEvent *event) {
-    if (!event)
+    if (!event) {
         return;
+    }
 
     g_free(event->change);
 
-    if (event->current && I3IPC_IS_CON(event->current))
+    if (event->current && I3IPC_IS_CON(event->current)) {
         g_clear_object(&event->current);
+    }
 
-    if (event->old && I3IPC_IS_CON(event->old))
+    if (event->old && I3IPC_IS_CON(event->old)) {
         g_clear_object(&event->old);
+    }
 
     g_slice_free(i3ipcWorkspaceEvent, event);
 }
@@ -104,8 +109,9 @@ i3ipcGenericEvent *i3ipc_generic_event_copy(i3ipcGenericEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_generic_event_free(i3ipcGenericEvent *event) {
-    if (!event)
+    if (!event) {
         return;
+    }
 
     g_free(event->change);
 
@@ -145,8 +151,9 @@ i3ipcWindowEvent *i3ipc_window_event_copy(i3ipcWindowEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_window_event_free(i3ipcWindowEvent *event) {
-    if (!event)
+    if (!event) {
         return;
+    }
 
     g_free(event->change);
 
@@ -188,8 +195,9 @@ i3ipcBarconfigUpdateEvent *i3ipc_barconfig_update_event_copy(i3ipcBarconfigUpdat
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_barconfig_update_event_free(i3ipcBarconfigUpdateEvent *event) {
-    if (!event)
+    if (!event) {
         return;
+    }
 
     g_free(event->id);
     g_free(event->hidden_state);
@@ -232,8 +240,9 @@ i3ipcBindingInfo *i3ipc_binding_info_copy(i3ipcBindingInfo *info) {
  * Frees @info. If @info is %NULL, it simply returns.
  */
 void i3ipc_binding_info_free(i3ipcBindingInfo *info) {
-    if (!info)
+    if (!info) {
         return;
+    }
 
     g_free(info->command);
     g_free(info->input_type);
@@ -275,8 +284,9 @@ i3ipcBindingEvent *i3ipc_binding_event_copy(i3ipcBindingEvent *event) {
  * Frees @event. If @event is %NULL, it simply returns.
  */
 void i3ipc_binding_event_free(i3ipcBindingEvent *event) {
-    if (!event)
+    if (!event) {
         return;
+    }
 
     g_free(event->change);
     i3ipc_binding_info_free(event->binding);
