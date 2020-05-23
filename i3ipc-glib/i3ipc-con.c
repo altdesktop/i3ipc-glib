@@ -84,7 +84,7 @@ struct _i3ipcConPrivate {
     i3ipcCon *parent;
 };
 
-G_DEFINE_TYPE(i3ipcCon, i3ipc_con, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_PRIVATE(i3ipcCon, i3ipc_con, G_TYPE_OBJECT);
 
 enum {
     PROP_0,
@@ -416,12 +416,10 @@ static void i3ipc_con_class_init(i3ipcConClass *klass) {
         G_PARAM_READABLE);
 
     g_object_class_install_properties(gobject_class, N_PROPERTIES, obj_properties);
-
-    g_type_class_add_private(klass, sizeof(i3ipcConPrivate));
 }
 
 static void i3ipc_con_init(i3ipcCon *self) {
-    self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self, I3IPC_TYPE_CON, i3ipcConPrivate);
+    self->priv = i3ipc_con_get_instance_private(self);
     self->priv->rect = g_slice_new0(i3ipcRect);
     self->priv->deco_rect = g_slice_new0(i3ipcRect);
     self->priv->nodes = NULL;

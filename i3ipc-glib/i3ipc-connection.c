@@ -72,6 +72,7 @@ struct _i3ipcConnectionPrivate {
 static void i3ipc_connection_initable_iface_init(GInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE(i3ipcConnection, i3ipc_connection, G_TYPE_OBJECT,
+                        G_ADD_PRIVATE(i3ipcConnection)
                         G_IMPLEMENT_INTERFACE(G_TYPE_INITABLE,
                                               i3ipc_connection_initable_iface_init));
 
@@ -304,11 +305,10 @@ static void i3ipc_connection_class_init(i3ipcConnectionClass *klass) {
                      G_TYPE_NONE,                   /* return_type */
                      0);                            /* n_params */
 
-    g_type_class_add_private(klass, sizeof(i3ipcConnectionPrivate));
 }
 
 static void i3ipc_connection_init(i3ipcConnection *self) {
-    self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self, I3IPC_TYPE_CONNECTION, i3ipcConnectionPrivate);
+    self->priv = i3ipc_connection_get_instance_private(self);
 }
 
 /**
@@ -850,7 +850,7 @@ GSList *i3ipc_connection_command(i3ipcConnection *self, const gchar *command, GE
                                 : NULL);
 
         cmd_reply->_id = (json_object_has_member(json_reply, "id")
-                                ? g_strdup(json_object_get_string_member(json_reply, "id"))
+                                ? json_object_get_int_member(json_reply, "id")
                                 : 0);
 
         retval = g_slist_append(retval, cmd_reply);
