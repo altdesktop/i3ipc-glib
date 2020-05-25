@@ -14,11 +14,16 @@ BuildRequires: glib2-devel
 BuildRequires: json-glib-devel
 BuildRequires: gtk-doc
 
+%if 0%{?suse_version} >= 1500
+Requires: libxcb1
+Requires: libjson-glib-1_0-0
+Requires: libglib-2_0-0
+%else
 Requires: libxcb
 Requires: json-glib
-Requires: gobject-introspection
 Requires: glib2
-
+%endif
+Requires: gobject-introspection
 
 %description
 A C interface library to i3wm.
