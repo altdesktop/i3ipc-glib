@@ -1,5 +1,16 @@
 # Changelog - i3ipc-GLib
 
+## Version 1.0.1
+
+This release adds bugfixes and breaking changes.
+
+* Fix memory leak in i3ipcCon (#7)
+* Change window id type to uint (breaking) (#9)
+* Add `i3ipc_connection_main_with_context` (#13)
+* Add `window_role` property (#14)
+* Fix `i3ipc_con_descendents` memory leak (#15)
+* Add support for `GET_CONFIG` i3ipc message. (#29)
+
 ## Version 0.6.0
 
 This release adds two new container properties.
