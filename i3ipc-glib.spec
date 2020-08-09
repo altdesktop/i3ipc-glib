@@ -1,6 +1,6 @@
 Summary: A C interface library to i3wm
 Name:    i3ipc-glib
-Version: 0.6.0
+Version: 1.0.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL v3
