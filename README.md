@@ -10,6 +10,8 @@ i3ipc-GLib is a C library for controlling the window manager. This project is in
 
 The latest documentation can be found online [here](http://dubstepdish.com/i3ipc-glib).
 
+[Chat](https://discord.gg/UdbXHVX)
+
 ### Projects using i3ipc-GLib
 
 * [j4status](https://github.com/sardemff7/j4status) - shows the focused window in the status line.
