@@ -321,9 +321,14 @@ static void i3ipc_connection_init(i3ipcConnection *self) {
 i3ipcConnection *i3ipc_connection_new(const gchar *socket_path, GError **err) {
     i3ipcConnection *conn;
     GError *tmp_error = NULL;
+    gchar *sock = g_strdup(socket_path);
+
+    if (!sock) {
+	    sock = getenv("I3SOCK");
+    }
 
     conn =
-        g_initable_new(I3IPC_TYPE_CONNECTION, NULL, &tmp_error, "socket-path", socket_path, NULL);
+        g_initable_new(I3IPC_TYPE_CONNECTION, NULL, &tmp_error, "socket-path", sock, NULL);
 
     if (tmp_error != NULL) {
         g_propagate_error(err, tmp_error);
