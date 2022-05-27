@@ -51,7 +51,15 @@ AC_SUBST(I3IPC_MINOR_VERSION)
 AC_SUBST(I3IPC_MICRO_VERSION)
 AC_SUBST(I3IPC_VERSION)
 
-GOBJECT_INTROSPECTION_CHECK([1.32.0])
+have_introspection=false
+m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
+    GOBJECT_INTROSPECTION_CHECK([1.32.0])
+    if test "x$found_introspection" = xyes; then
+        have_introspection=true
+    fi
+], [
+    AM_CONDITIONAL([HAVE_INTROSPECTION], false)
+])
 
 # Check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
