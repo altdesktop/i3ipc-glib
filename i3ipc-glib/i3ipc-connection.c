@@ -468,7 +468,7 @@ static GIOStatus ipc_recv_message(GIOChannel *channel, uint32_t *message_type,
             return status;
         }
 
-        if (status == G_IO_STATUS_EOF) {
+        if (status == G_IO_STATUS_EOF || status == G_IO_STATUS_ERROR) {
             return status;
         }
     }
@@ -499,7 +499,7 @@ static GIOStatus ipc_recv_message(GIOChannel *channel, uint32_t *message_type,
             return status;
         }
 
-        if (status == G_IO_STATUS_EOF) {
+        if (status == G_IO_STATUS_EOF || status == G_IO_STATUS_ERROR) {
             return status;
         }
     }
@@ -526,7 +526,7 @@ static gboolean ipc_on_data(GIOChannel *channel, GIOCondition condition, i3ipcCo
 
     status = ipc_recv_message(channel, &reply_type, &reply_length, &reply, &err);
 
-    if (status == G_IO_STATUS_EOF) {
+    if (status == G_IO_STATUS_EOF || status == G_IO_STATUS_ERROR) {
         g_signal_emit(conn, connection_signals[IPC_SHUTDOWN], 0);
 
         if (conn->priv->main_loop != NULL) {
